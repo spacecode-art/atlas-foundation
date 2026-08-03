@@ -20,3 +20,4 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 }
+# CI test comment - safe to remove
