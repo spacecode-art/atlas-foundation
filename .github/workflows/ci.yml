@@ -17,11 +17,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Verify Repository Structure
-        run: |
-          echo "Repository structure:"
-          ls -R
-
       - name: Verify Required Files
         run: |
           test -f README.md
@@ -31,5 +26,40 @@ jobs:
           test -f .gitignore
           test -f .editorconfig
           test -f Makefile
-
           echo "Repository standards verified."
+
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    services:
+      ministack:
+        image: ministackorg/ministack
+        ports:
+          - 4566:4566
+        options: >-
+          --health-cmd "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:4566/_ministack/health')\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Plan - Bootstrap
+        working-directory: terraform/bootstrap/backend
+        run: |
+          terraform init
+          terraform plan
+
+      - name: Plan - Development
+        working-directory: terraform/environments/development
+        run: |
+          terraform init -backend-config=backend.hcl
+          terraform plan
