@@ -22,7 +22,7 @@ Atlas Foundation provides the base layer upon which the rest of the platform is 
 
 - Build infrastructure using Terraform.
 - Follow Infrastructure as Code best practices.
-- Simulate enterprise AWS environments with LocalStack.
+- Simulate enterprise AWS environments with MiniStack.
 - Develop reusable Terraform modules.
 - Apply cloud security and governance principles.
 - Integrate automated testing and CI/CD.
@@ -34,18 +34,27 @@ Atlas Foundation provides the base layer upon which the rest of the platform is 
 
 ```text
 atlas-foundation/
-├── .github/               # GitHub workflows
-├── docs/                  # Documentation
-│   ├── adr/               # Architecture Decision Records
-│   ├── architecture/      # Architecture documents
-│   └── diagrams/          # System diagrams
-├── scripts/               # Utility scripts
+├── .github/
+│   └── workflows/          # CI (repository validation, terraform plan)
+├── docs/
+│   └── adr/                 # Architecture Decision Records
 ├── terraform/
-│   ├── environments/      # Environment deployments
-│   ├── modules/           # Reusable Terraform modules
-│   └── policies/          # Policy as Code
-├── tests/
-│   └── terratest/         # Infrastructure tests
+│   ├── bootstrap/
+│   │   ├── backend/         # S3 state bucket + DynamoDB lock table
+│   │   ├── providers/
+│   │   └── state/
+│   ├── modules/              # Reusable Terraform modules
+│   │   ├── organizations/
+│   │   ├── iam/
+│   │   ├── networking/
+│   │   └── security/
+│   └── environments/         # Per-account deployments
+│       ├── management/
+│       ├── security/
+│       ├── shared/
+│       ├── development/
+│       ├── staging/
+│       └── production/
 ├── .editorconfig
 ├── .gitignore
 ├── CHANGELOG.md
@@ -61,7 +70,7 @@ atlas-foundation/
 
 - Terraform
 - AWS
-- LocalStack
+- MiniStack
 - Docker
 - GitHub Actions
 - Go (Terratest)
