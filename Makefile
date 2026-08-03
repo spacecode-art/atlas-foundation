@@ -1,5 +1,3 @@
-.PHONY: help
-
-help:
-	@echo "Available commands:"
-	@echo "  make help"
+.PHONY: check
+check:
+	@cd terraform/bootstrap/backend && terraform plan
