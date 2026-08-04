@@ -51,12 +51,17 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.0"
+      # Bootstrap is applied here (not just planned) because it creates
+      # the S3 state bucket that development/ needs to even initialize.
+      # This only touches the ephemeral CI service container, which is
+      # destroyed when the job ends — real environments below this still
+      # only ever run `plan`, never `apply`.
 
-      - name: Plan - Bootstrap
+      - name: Bootstrap - Init and Apply
         working-directory: terraform/bootstrap/backend
         run: |
           terraform init
-          terraform plan
+          terraform apply -auto-approve
 
       - name: Plan - Development
         working-directory: terraform/environments/development
