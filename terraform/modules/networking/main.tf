@@ -9,6 +9,19 @@ resource "aws_vpc" "this" {
   }
 }
 
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+  # Intentionally empty ingress/egress — locks down the default SG so
+  # nothing can accidentally attach to it and inherit open access.
+  # Real workloads should use purpose-built security groups instead.
+
+  tags = {
+    Name        = "atlas-${var.environment}-default-sg-locked"
+    Environment = var.environment
+  }
+}
+
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 

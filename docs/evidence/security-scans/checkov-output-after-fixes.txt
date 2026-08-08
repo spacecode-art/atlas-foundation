@@ -1,0 +1,345 @@
+
+       _               _
+   ___| |__   ___  ___| | _______   __
+  / __| '_ \ / _ \/ __| |/ / _ \ \ / /
+ | (__| | | |  __/ (__|   < (_) \ V /
+  \___|_| |_|\___|\___|_|\_\___/ \_/
+
+By Prisma Cloud | version: 3.3.9 
+
+terraform scan results:
+
+Passed checks: 32, Failed checks: 14, Skipped checks: 0
+
+Check: CKV_AWS_93: "Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)"
+	PASSED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-24
+Check: CKV_AWS_28: "Ensure DynamoDB point in time recovery (backup) is enabled"
+	PASSED for resource: aws_dynamodb_table.terraform_locks
+	File: /bootstrap/backend/main.tf:13-30
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-6
+Check: CKV_AWS_55: "Ensure S3 bucket has ignore public ACLs enabled"
+	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
+	File: /bootstrap/backend/main.tf:32-39
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-21
+Check: CKV_AWS_56: "Ensure S3 bucket has 'restrict_public_buckets' enabled"
+	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
+	File: /bootstrap/backend/main.tf:32-39
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-22
+Check: CKV_AWS_54: "Ensure S3 bucket has block public policy enabled"
+	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
+	File: /bootstrap/backend/main.tf:32-39
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-20
+Check: CKV_AWS_53: "Ensure S3 bucket has block public ACLS enabled"
+	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
+	File: /bootstrap/backend/main.tf:32-39
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-19
+Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
+	PASSED for resource: aws.default
+	File: /bootstrap/backend/providers.tf:1-16
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
+Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
+	PASSED for resource: aws.default
+	File: /environments/development/providers.tf:1-20
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
+Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
+	PASSED for resource: aws.default
+	File: /environments/management/providers.tf:1-17
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
+Check: CKV_AWS_274: "Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy"
+	PASSED for resource: module.iam.aws_ssoadmin_managed_policy_attachment.this
+	File: /modules/iam/main.tf:9-25
+	Calling File: /environments/management/main.tf:35-56
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-274
+Check: CKV_AWS_130: "Ensure VPC subnets do not assign public IP by default"
+	PASSED for resource: module.network.aws_subnet.private[0]
+	File: /modules/networking/main.tf:48-59
+	Calling File: /environments/development/main.tf:9-17
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-vpc-subnets-do-not-assign-public-ip-by-default
+Check: CKV_AWS_130: "Ensure VPC subnets do not assign public IP by default"
+	PASSED for resource: module.network.aws_subnet.private[1]
+	File: /modules/networking/main.tf:48-59
+	Calling File: /environments/development/main.tf:9-17
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-vpc-subnets-do-not-assign-public-ip-by-default
+Check: CKV_AWS_93: "Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)"
+	PASSED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Calling File: /environments/development/main.tf:1-7
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-24
+Check: CKV_AWS_55: "Ensure S3 bucket has ignore public ACLs enabled"
+	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
+	File: /modules/storage/main.tf:19-26
+	Calling File: /environments/development/main.tf:1-7
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-21
+Check: CKV_AWS_56: "Ensure S3 bucket has 'restrict_public_buckets' enabled"
+	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
+	File: /modules/storage/main.tf:19-26
+	Calling File: /environments/development/main.tf:1-7
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-22
+Check: CKV_AWS_54: "Ensure S3 bucket has block public policy enabled"
+	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
+	File: /modules/storage/main.tf:19-26
+	Calling File: /environments/development/main.tf:1-7
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-20
+Check: CKV_AWS_53: "Ensure S3 bucket has block public ACLS enabled"
+	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
+	File: /modules/storage/main.tf:19-26
+	Calling File: /environments/development/main.tf:1-7
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-19
+Check: CKV2_AWS_44: "Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic"
+	PASSED for resource: module.network.aws_route_table.public
+	File: /modules/networking/main.tf:61-73
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-route-table-with-vpc-peering-does-not-contain-routes-overly-permissive-to-all-traffic
+Check: CKV2_AWS_56: "Ensure AWS Managed IAMFullAccess IAM policy is not used."
+	PASSED for resource: module.iam.aws_ssoadmin_managed_policy_attachment.this
+	File: /modules/iam/main.tf:9-25
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-2-56
+Check: CKV2_AWS_35: "AWS NAT Gateways should be utilized for the default route"
+	PASSED for resource: module.network.aws_route_table.public
+	File: /modules/networking/main.tf:61-73
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-nat-gateways-are-utilized-for-the-default-route
+Check: CKV2_AWS_16: "Ensure that Auto Scaling is enabled on your DynamoDB tables"
+	PASSED for resource: aws_dynamodb_table.terraform_locks
+	File: /bootstrap/backend/main.tf:13-30
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-auto-scaling-is-enabled-on-your-dynamodb-tables
+Check: CKV_AWS_20: "S3 Bucket has an ACL defined which allows public READ access."
+	PASSED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-1-acl-read-permissions-everyone
+Check: CKV_AWS_20: "S3 Bucket has an ACL defined which allows public READ access."
+	PASSED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-1-acl-read-permissions-everyone
+Check: CKV_AWS_57: "S3 Bucket has an ACL defined which allows public WRITE access."
+	PASSED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-2-acl-write-permissions-everyone
+Check: CKV_AWS_57: "S3 Bucket has an ACL defined which allows public WRITE access."
+	PASSED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-2-acl-write-permissions-everyone
+Check: CKV2_AWS_6: "Ensure that S3 bucket has a Public Access block"
+	PASSED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached
+Check: CKV2_AWS_6: "Ensure that S3 bucket has a Public Access block"
+	PASSED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached
+Check: CKV_AWS_21: "Ensure all data stored in the S3 bucket have versioning enabled"
+	PASSED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-16-enable-versioning
+Check: CKV_AWS_21: "Ensure all data stored in the S3 bucket have versioning enabled"
+	PASSED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-16-enable-versioning
+Check: CKV_AWS_19: "Ensure all data stored in the S3 bucket is securely encrypted at rest"
+	PASSED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-14-data-encrypted-at-rest
+Check: CKV_AWS_19: "Ensure all data stored in the S3 bucket is securely encrypted at rest"
+	PASSED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-14-data-encrypted-at-rest
+Check: CKV2_AWS_12: "Ensure the default security group of every VPC restricts all traffic"
+	PASSED for resource: module.network.aws_vpc.this
+	File: /modules/networking/main.tf:1-10
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-4
+Check: CKV_AWS_119: "Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK"
+	FAILED for resource: aws_dynamodb_table.terraform_locks
+	File: /bootstrap/backend/main.tf:13-30
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52
+
+		13 | resource "aws_dynamodb_table" "terraform_locks" {
+		14 |   name         = "atlas-terraform-locks"
+		15 |   billing_mode = "PAY_PER_REQUEST"
+		16 |   hash_key     = "LockID"
+		17 | 
+		18 |   attribute {
+		19 |     name = "LockID"
+		20 |     type = "S"
+		21 |   }
+		22 | 
+		23 |   server_side_encryption {
+		24 |     enabled = true
+		25 |   }
+		26 | 
+		27 |   point_in_time_recovery {
+		28 |     enabled = true
+		29 |   }
+		30 | }
+
+Check: CKV_AWS_130: "Ensure VPC subnets do not assign public IP by default"
+	FAILED for resource: module.network.aws_subnet.public[0]
+	File: /modules/networking/main.tf:34-46
+	Calling File: /environments/development/main.tf:9-17
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-vpc-subnets-do-not-assign-public-ip-by-default
+
+		34 | resource "aws_subnet" "public" {
+		35 |   count                   = length(var.public_subnet_cidrs)
+		36 |   vpc_id                  = aws_vpc.this.id
+		37 |   cidr_block              = var.public_subnet_cidrs[count.index]
+		38 |   availability_zone       = var.availability_zones[count.index]
+		39 |   map_public_ip_on_launch = true
+		40 | 
+		41 |   tags = {
+		42 |     Name        = "atlas-${var.environment}-public-${count.index}"
+		43 |     Environment = var.environment
+		44 |     Tier        = "public"
+		45 |   }
+		46 | }
+
+Check: CKV_AWS_130: "Ensure VPC subnets do not assign public IP by default"
+	FAILED for resource: module.network.aws_subnet.public[1]
+	File: /modules/networking/main.tf:34-46
+	Calling File: /environments/development/main.tf:9-17
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-vpc-subnets-do-not-assign-public-ip-by-default
+
+		34 | resource "aws_subnet" "public" {
+		35 |   count                   = length(var.public_subnet_cidrs)
+		36 |   vpc_id                  = aws_vpc.this.id
+		37 |   cidr_block              = var.public_subnet_cidrs[count.index]
+		38 |   availability_zone       = var.availability_zones[count.index]
+		39 |   map_public_ip_on_launch = true
+		40 | 
+		41 |   tags = {
+		42 |     Name        = "atlas-${var.environment}-public-${count.index}"
+		43 |     Environment = var.environment
+		44 |     Tier        = "public"
+		45 |   }
+		46 | }
+
+Check: CKV2_AWS_11: "Ensure VPC flow logging is enabled in all VPCs"
+	FAILED for resource: module.network.aws_vpc.this
+	File: /modules/networking/main.tf:1-10
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/logging-9-enable-vpc-flow-logging
+
+		1  | resource "aws_vpc" "this" {
+		2  |   cidr_block           = var.vpc_cidr
+		3  |   enable_dns_support   = true
+		4  |   enable_dns_hostnames = true
+		5  | 
+		6  |   tags = {
+		7  |     Name        = "atlas-${var.environment}-vpc"
+		8  |     Environment = var.environment
+		9  |   }
+		10 | }
+
+Check: CKV2_AWS_62: "Ensure S3 buckets should have event notifications enabled"
+	FAILED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62
+
+		1 | resource "aws_s3_bucket" "terraform_state" {
+		2 |   bucket = "atlas-terraform-state"
+		3 | }
+
+Check: CKV2_AWS_62: "Ensure S3 buckets should have event notifications enabled"
+	FAILED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62
+
+		1 | resource "aws_s3_bucket" "this" {
+		2 |   bucket = var.bucket_name
+		3 | 
+		4 |   tags = {
+		5 |     Environment = var.environment
+		6 |     ManagedBy   = "terraform"
+		7 |   }
+		8 | }
+
+Check: CKV2_AWS_61: "Ensure that an S3 bucket has a lifecycle configuration"
+	FAILED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-61
+
+		1 | resource "aws_s3_bucket" "terraform_state" {
+		2 |   bucket = "atlas-terraform-state"
+		3 | }
+
+Check: CKV2_AWS_61: "Ensure that an S3 bucket has a lifecycle configuration"
+	FAILED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-61
+
+		1 | resource "aws_s3_bucket" "this" {
+		2 |   bucket = var.bucket_name
+		3 | 
+		4 |   tags = {
+		5 |     Environment = var.environment
+		6 |     ManagedBy   = "terraform"
+		7 |   }
+		8 | }
+
+Check: CKV_AWS_144: "Ensure that S3 bucket has cross-region replication enabled"
+	FAILED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled
+
+		1 | resource "aws_s3_bucket" "terraform_state" {
+		2 |   bucket = "atlas-terraform-state"
+		3 | }
+
+Check: CKV_AWS_144: "Ensure that S3 bucket has cross-region replication enabled"
+	FAILED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled
+
+		1 | resource "aws_s3_bucket" "this" {
+		2 |   bucket = var.bucket_name
+		3 | 
+		4 |   tags = {
+		5 |     Environment = var.environment
+		6 |     ManagedBy   = "terraform"
+		7 |   }
+		8 | }
+
+Check: CKV_AWS_18: "Ensure the S3 bucket has access logging enabled"
+	FAILED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging
+
+		1 | resource "aws_s3_bucket" "terraform_state" {
+		2 |   bucket = "atlas-terraform-state"
+		3 | }
+
+Check: CKV_AWS_18: "Ensure the S3 bucket has access logging enabled"
+	FAILED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging
+
+		1 | resource "aws_s3_bucket" "this" {
+		2 |   bucket = var.bucket_name
+		3 | 
+		4 |   tags = {
+		5 |     Environment = var.environment
+		6 |     ManagedBy   = "terraform"
+		7 |   }
+		8 | }
+
+Check: CKV_AWS_145: "Ensure that S3 buckets are encrypted with KMS by default"
+	FAILED for resource: aws_s3_bucket.terraform_state
+	File: /bootstrap/backend/main.tf:1-3
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default
+
+		1 | resource "aws_s3_bucket" "terraform_state" {
+		2 |   bucket = "atlas-terraform-state"
+		3 | }
+
+Check: CKV_AWS_145: "Ensure that S3 buckets are encrypted with KMS by default"
+	FAILED for resource: module.app_storage.aws_s3_bucket.this
+	File: /modules/storage/main.tf:1-8
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default
+
+		1 | resource "aws_s3_bucket" "this" {
+		2 |   bucket = var.bucket_name
+		3 | 
+		4 |   tags = {
+		5 |     Environment = var.environment
+		6 |     ManagedBy   = "terraform"
+		7 |   }
+		8 | }
+
+
