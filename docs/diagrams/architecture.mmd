@@ -1,0 +1,52 @@
+graph TB
+    subgraph "Management Account (design-only — MiniStack cannot apply)"
+        ORG[AWS Organization]
+        OU_SEC[Security OU]
+        OU_SHARED[Shared OU]
+        OU_WORK[Workloads OU]
+        SCP[SCP: restrict-region-us-east-1]
+        SSO[IAM Identity Center<br/>Permission Sets]
+
+        ORG --> OU_SEC
+        ORG --> OU_SHARED
+        ORG --> OU_WORK
+        SCP -.attached to.-> OU_WORK
+        SSO -.assigns access to.-> OU_WORK
+    end
+
+    subgraph "Development Account (fully applied against MiniStack)"
+        VPC[VPC 10.0.0.0/16]
+        IGW[Internet Gateway]
+        PUB1[Public Subnet AZ-a]
+        PUB2[Public Subnet AZ-b]
+        PRIV1[Private Subnet AZ-a]
+        PRIV2[Private Subnet AZ-b]
+        RT[Public Route Table<br/>0.0.0.0/0 -> IGW]
+        SG[Default SG<br/>ingress locked down]
+        S3[S3 Bucket<br/>atlas-dev-app-storage<br/>encrypted, public-blocked]
+
+        VPC --> IGW
+        VPC --> PUB1
+        VPC --> PUB2
+        VPC --> PRIV1
+        VPC --> PRIV2
+        RT --> PUB1
+        RT --> PUB2
+        IGW --> RT
+        VPC --> SG
+    end
+
+    subgraph "Terraform State Management (bootstrap — local state, applied once)"
+        STATE_S3[S3: atlas-terraform-state<br/>encrypted, versioned, public-blocked]
+        LOCK[DynamoDB: atlas-terraform-locks<br/>encrypted, PITR enabled]
+    end
+
+    subgraph "CI/CD"
+        GHA[GitHub Actions]
+        MINISTACK_CI[Ephemeral MiniStack<br/>service container]
+        GHA --> MINISTACK_CI
+    end
+
+    DEV_ENV[development/] -.remote state.-> STATE_S3
+    MGMT_ENV[management/] -.remote state.-> STATE_S3
+    STATE_S3 -.locking.-> LOCK
