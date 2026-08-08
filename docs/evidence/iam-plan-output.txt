@@ -1,0 +1,188 @@
+
+Warning: Deprecated Parameter
+
+The parameter "dynamodb_table" is deprecated. Use parameter "use_lockfile" instead.
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # module.iam.aws_ssoadmin_managed_policy_attachment.this["AdministratorAccess-arn:aws:iam::aws:policy/AdministratorAccess"] will be created
+  + resource "aws_ssoadmin_managed_policy_attachment" "this" {
+      + id                  = (known after apply)
+      + instance_arn        = "arn:aws:sso:::instance/ssoins-example00000000"
+      + managed_policy_arn  = "arn:aws:iam::aws:policy/AdministratorAccess"
+      + managed_policy_name = (known after apply)
+      + permission_set_arn  = (known after apply)
+    }
+
+  # module.iam.aws_ssoadmin_managed_policy_attachment.this["ReadOnlyAccess-arn:aws:iam::aws:policy/ReadOnlyAccess"] will be created
+  + resource "aws_ssoadmin_managed_policy_attachment" "this" {
+      + id                  = (known after apply)
+      + instance_arn        = "arn:aws:sso:::instance/ssoins-example00000000"
+      + managed_policy_arn  = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+      + managed_policy_name = (known after apply)
+      + permission_set_arn  = (known after apply)
+    }
+
+  # module.iam.aws_ssoadmin_permission_set.this["AdministratorAccess"] will be created
+  + resource "aws_ssoadmin_permission_set" "this" {
+      + arn              = (known after apply)
+      + created_date     = (known after apply)
+      + description      = "Full administrative access"
+      + id               = (known after apply)
+      + instance_arn     = "arn:aws:sso:::instance/ssoins-example00000000"
+      + name             = "AdministratorAccess"
+      + session_duration = "PT4H"
+      + tags_all         = (known after apply)
+    }
+
+  # module.iam.aws_ssoadmin_permission_set.this["ReadOnlyAccess"] will be created
+  + resource "aws_ssoadmin_permission_set" "this" {
+      + arn              = (known after apply)
+      + created_date     = (known after apply)
+      + description      = "Read-only access for auditing"
+      + id               = (known after apply)
+      + instance_arn     = "arn:aws:sso:::instance/ssoins-example00000000"
+      + name             = "ReadOnlyAccess"
+      + session_duration = "PT8H"
+      + tags_all         = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_account.this["atlas-development"] will be created
+  + resource "aws_organizations_account" "this" {
+      + arn               = (known after apply)
+      + close_on_deletion = false
+      + create_govcloud   = false
+      + email             = "prime+dev@example.com"
+      + govcloud_id       = (known after apply)
+      + id                = (known after apply)
+      + joined_method     = (known after apply)
+      + joined_timestamp  = (known after apply)
+      + name              = "atlas-development"
+      + parent_id         = (known after apply)
+      + status            = (known after apply)
+      + tags_all          = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_account.this["atlas-production"] will be created
+  + resource "aws_organizations_account" "this" {
+      + arn               = (known after apply)
+      + close_on_deletion = false
+      + create_govcloud   = false
+      + email             = "prime+prod@example.com"
+      + govcloud_id       = (known after apply)
+      + id                = (known after apply)
+      + joined_method     = (known after apply)
+      + joined_timestamp  = (known after apply)
+      + name              = "atlas-production"
+      + parent_id         = (known after apply)
+      + status            = (known after apply)
+      + tags_all          = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_account.this["atlas-security"] will be created
+  + resource "aws_organizations_account" "this" {
+      + arn               = (known after apply)
+      + close_on_deletion = false
+      + create_govcloud   = false
+      + email             = "prime+security@example.com"
+      + govcloud_id       = (known after apply)
+      + id                = (known after apply)
+      + joined_method     = (known after apply)
+      + joined_timestamp  = (known after apply)
+      + name              = "atlas-security"
+      + parent_id         = (known after apply)
+      + status            = (known after apply)
+      + tags_all          = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_account.this["atlas-shared-services"] will be created
+  + resource "aws_organizations_account" "this" {
+      + arn               = (known after apply)
+      + close_on_deletion = false
+      + create_govcloud   = false
+      + email             = "prime+shared@example.com"
+      + govcloud_id       = (known after apply)
+      + id                = (known after apply)
+      + joined_method     = (known after apply)
+      + joined_timestamp  = (known after apply)
+      + name              = "atlas-shared-services"
+      + parent_id         = (known after apply)
+      + status            = (known after apply)
+      + tags_all          = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_account.this["atlas-staging"] will be created
+  + resource "aws_organizations_account" "this" {
+      + arn               = (known after apply)
+      + close_on_deletion = false
+      + create_govcloud   = false
+      + email             = "prime+staging@example.com"
+      + govcloud_id       = (known after apply)
+      + id                = (known after apply)
+      + joined_method     = (known after apply)
+      + joined_timestamp  = (known after apply)
+      + name              = "atlas-staging"
+      + parent_id         = (known after apply)
+      + status            = (known after apply)
+      + tags_all          = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_organization.this will be created
+  + resource "aws_organizations_organization" "this" {
+      + accounts                      = (known after apply)
+      + arn                           = (known after apply)
+      + aws_service_access_principals = [
+          + "cloudtrail.amazonaws.com",
+          + "config.amazonaws.com",
+          + "guardduty.amazonaws.com",
+        ]
+      + feature_set                   = "ALL"
+      + id                            = (known after apply)
+      + master_account_arn            = (known after apply)
+      + master_account_email          = (known after apply)
+      + master_account_id             = (known after apply)
+      + master_account_name           = (known after apply)
+      + non_master_accounts           = (known after apply)
+      + roots                         = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_organizational_unit.this["Security"] will be created
+  + resource "aws_organizations_organizational_unit" "this" {
+      + accounts  = (known after apply)
+      + arn       = (known after apply)
+      + id        = (known after apply)
+      + name      = "Security"
+      + parent_id = (known after apply)
+      + tags_all  = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_organizational_unit.this["Shared"] will be created
+  + resource "aws_organizations_organizational_unit" "this" {
+      + accounts  = (known after apply)
+      + arn       = (known after apply)
+      + id        = (known after apply)
+      + name      = "Shared"
+      + parent_id = (known after apply)
+      + tags_all  = (known after apply)
+    }
+
+  # module.organizations.aws_organizations_organizational_unit.this["Workloads"] will be created
+  + resource "aws_organizations_organizational_unit" "this" {
+      + accounts  = (known after apply)
+      + arn       = (known after apply)
+      + id        = (known after apply)
+      + name      = "Workloads"
+      + parent_id = (known after apply)
+      + tags_all  = (known after apply)
+    }
+
+Plan: 13 to add, 0 to change, 0 to destroy.
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

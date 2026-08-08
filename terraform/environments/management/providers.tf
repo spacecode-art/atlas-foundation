@@ -11,5 +11,7 @@ provider "aws" {
     s3            = "http://localhost:4566"
     dynamodb      = "http://localhost:4566"
     organizations = "http://localhost:4566"
+    ssoadmin      = "http://localhost:4566"
+
   }
 }
