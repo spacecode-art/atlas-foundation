@@ -56,3 +56,42 @@ module "iam" {
 }
 
 
+module "policies" {
+  source = "../../modules/policies"
+
+  policies = [
+    {
+      name        = "restrict-region-us-east-1"
+      description = "Deny all actions outside us-east-1"
+      content = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
+          {
+            Sid       = "DenyOutsideUsEast1"
+            Effect    = "Deny"
+            NotAction = [
+              "iam:*",
+              "organizations:*",
+              "route53:*",
+              "cloudfront:*",
+              "support:*",
+            ]
+            Resource = "*"
+            Condition = {
+              StringNotEquals = {
+                "aws:RequestedRegion" = "us-east-1"
+              }
+            }
+          }
+        ]
+      })
+    }
+  ]
+
+  policy_attachments = [
+    {
+      policy_name = "restrict-region-us-east-1"
+      target_id   = module.organizations.organizational_unit_ids["Workloads"]
+    }
+  ]
+}
