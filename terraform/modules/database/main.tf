@@ -48,10 +48,13 @@ resource "aws_db_instance" "this" {
   db_subnet_group_name   = aws_db_subnet_group.this.name
   vpc_security_group_ids = [aws_security_group.db.id]
 
-  publicly_accessible = false
-  skip_final_snapshot  = var.skip_final_snapshot
-  deletion_protection  = var.deletion_protection
-  multi_az             = var.multi_az
+  publicly_accessible          = false
+  skip_final_snapshot          = var.skip_final_snapshot
+  deletion_protection          = var.deletion_protection
+  multi_az                     = var.multi_az
+  copy_tags_to_snapshot        = true
+  auto_minor_version_upgrade   = true
+  enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   tags = {
     Name        = "atlas-${var.environment}-db"
