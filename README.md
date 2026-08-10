@@ -2,19 +2,38 @@
 
 > The foundational repository for the Atlas cloud platform.
 
+## Problem Statement
+
+Standing up AWS infrastructure without a landing zone means every team
+reinvents account structure, access control, and guardrails from
+scratch — usually inconsistently, and usually without anyone reviewing
+the security implications until an audit finds them. Atlas Foundation
+solves this once: a multi-account AWS Organization, IAM Identity Center
+access model, Service Control Policy guardrails, and a set of reusable,
+tested Terraform modules that every other Atlas repository builds on
+top of, all provable without a running production AWS bill.
+
 ## Overview
 
-Atlas Foundation is the core infrastructure repository of the Atlas platform. It establishes the AWS landing zone, platform governance, reusable Terraform modules, engineering standards, and documentation that serve as the foundation for all other Atlas repositories.
+Atlas Foundation is the core infrastructure repository of the Atlas
+platform. It establishes the AWS landing zone, platform governance,
+reusable Terraform modules, engineering standards, and documentation
+that serve as the foundation for all other Atlas repositories.
 
-The repository is designed as a production-style infrastructure project, following modern DevSecOps and Infrastructure as Code (IaC) practices.
+The repository is designed as a production-style infrastructure
+project, following modern DevSecOps and Infrastructure as Code (IaC)
+practices.
 
 ---
 
 ## Vision
 
-Atlas aims to become a complete Internal Developer Platform (IDP) that enables engineers to provision, secure, monitor, and operate cloud infrastructure through automation and reusable platform components.
+Atlas aims to become a complete Internal Developer Platform (IDP) that
+enables engineers to provision, secure, monitor, and operate cloud
+infrastructure through automation and reusable platform components.
 
-Atlas Foundation provides the base layer upon which the rest of the platform is built.
+Atlas Foundation provides the base layer upon which the rest of the
+platform is built.
 
 ---
 
@@ -59,6 +78,7 @@ graph TB
         RT[Public Route Table<br/>0.0.0.0/0 -> IGW]
         SG[Default SG<br/>ingress locked down]
         S3[S3 Bucket<br/>atlas-dev-app-storage<br/>encrypted, public-blocked]
+        RDS[RDS Postgres<br/>Secrets Manager-backed<br/>private subnets only]
 
         VPC --> IGW
         VPC --> PUB1
@@ -69,22 +89,25 @@ graph TB
         RT --> PUB2
         IGW --> RT
         VPC --> SG
+        PRIV1 --> RDS
     end
 
     subgraph "Terraform State Management (bootstrap — local state, applied once)"
         STATE_S3[S3: atlas-terraform-state<br/>encrypted, versioned, public-blocked]
-        LOCK[DynamoDB: atlas-terraform-locks<br/>encrypted, PITR enabled]
+        LOCKFILE[Native S3 lockfile<br/>use_lockfile, no DynamoDB]
     end
 
     subgraph "CI/CD"
         GHA[GitHub Actions]
         MINISTACK_CI[Ephemeral MiniStack<br/>service container]
+        CHECKOV[Checkov security-scan job<br/>hard-fail on new findings]
         GHA --> MINISTACK_CI
+        GHA --> CHECKOV
     end
 
     DEV_ENV[development/] -.remote state.-> STATE_S3
     MGMT_ENV[management/] -.remote state.-> STATE_S3
-    STATE_S3 -.locking.-> LOCK
+    STATE_S3 -.locking.-> LOCKFILE
 ```
 
 ---
@@ -94,29 +117,26 @@ graph TB
 ```text
 atlas-foundation/
 ├── .github/
-│   └── workflows/          # CI (repository validation, terraform plan)
+│   └── workflows/          # CI (repository validation, terraform plan, security scan)
 ├── docs/
 │   ├── adr/                 # Architecture Decision Records
 │   ├── diagrams/             # Architecture diagrams
-│   └── evidence/              # Committed proof-of-work (plan outputs, scan results)
+│   ├── evidence/              # Committed proof-of-work (plan outputs, scan results)
+│   ├── threat-model.md        # STRIDE threat model
+│   └── incident-runbook.md    # Operational runbook
 ├── terraform/
 │   ├── bootstrap/
-│   │   ├── backend/         # S3 state bucket + DynamoDB lock table
-│   │   ├── providers/
-│   │   └── state/
+│   │   └── backend/         # S3 state bucket, applied once, local state
 │   ├── modules/              # Reusable Terraform modules
 │   │   ├── organizations/
 │   │   ├── iam/
 │   │   ├── networking/
 │   │   ├── policies/
+│   │   ├── database/
 │   │   └── storage/
 │   └── environments/         # Per-account deployments
-│       ├── management/
-│       ├── security/
-│       ├── shared/
-│       ├── development/
-│       ├── staging/
-│       └── production/
+│       ├── management/       # real: org, IAM Identity Center, SCPs
+│       └── development/      # real: VPC, storage, RDS
 ├── tests/
 │   └── terratest/            # Automated infrastructure tests (Go)
 ├── .editorconfig
@@ -128,45 +148,108 @@ atlas-foundation/
 └── README.md
 ```
 
+`security`, `shared`, `staging`, and `production` environments are
+intentionally not yet built — see [ADR-0014](docs/adr/ADR-0014-defer-security-shared-staging-production-environments.md).
+
 ---
 
-## Technology Stack
+## Technology Choices
 
-- Terraform
-- AWS
-- MiniStack
-- Docker
-- GitHub Actions
-- Go (Terratest)
-- Python
-- Bash
+| Choice | Why this, not the alternative |
+|---|---|
+| **Terraform** over CloudFormation/CDK | Cloud-agnostic HCL, mature module ecosystem, and the skill transfers beyond AWS — the tradeoff is a steeper learning curve than CDK's native-language approach. |
+| **MiniStack** over LocalStack | LocalStack discontinued free-tier state persistence in March 2026 (ADR-0004); MiniStack is free/MIT with genuine persistence. Tradeoff: a newer, less battle-tested tool — verified independently via stop/start persistence testing rather than trusted on claims alone. |
+| **Native S3 locking (`use_lockfile`)** over DynamoDB | One fewer resource to provision, secure, and pay for; requires Terraform ≥1.11 (ADR-0012). Tradeoff: DynamoDB locking is more battle-tested in the wider ecosystem as of this writing. |
+| **`manage_master_user_password` (Secrets Manager)** over app-generated passwords | The database password never touches Terraform state in plaintext (ADR-0011). Tradeoff: ties credential rotation to AWS Secrets Manager conventions rather than a fully custom scheme. |
+| **Checkov** over tfsec-only for CI gating | Broader AWS-specific check coverage and active SARIF/GitHub Actions integration; tfsec still run manually as a second opinion (ADR-0010). |
+| **`plan`-only CI, manual `apply`** | Mirrors how real teams gate production changes — a human reviews the diff before anything is applied for real, and CI's only `apply` targets the ephemeral, throwaway MiniStack container. |
+
+---
+
+## Deployment Guide
+
+**Prerequisites:** Docker, Terraform ≥1.11, Go ≥1.21 (for Terratest).
+
+```bash
+# 1. Start MiniStack (local AWS emulator)
+docker run -d --name ministack -p 4566:4566 \
+  -e PERSIST_STATE=1 -e S3_PERSIST=1 \
+  -v ministack-data:/var/lib/ministack \
+  ministackorg/ministack
+
+# 2. Bootstrap the Terraform state backend (once, local state)
+cd terraform/bootstrap/backend
+terraform init
+terraform apply
+
+# 3. Deploy the development environment
+cd ../../environments/development
+terraform init -backend-config=backend.hcl
+terraform plan
+terraform apply
+
+# 4. Deploy the management environment (org/IAM/SCPs — plan only,
+#    account-and-org-level resources cannot be created by any local
+#    emulator; see ADR-0007–0009)
+cd ../management
+terraform init -backend-config=backend.hcl
+terraform plan
+```
+
+Run all checks locally before pushing (mirrors CI exactly):
+
+```bash
+make check
+```
+
+---
+
+## CI/CD
+
+Three jobs run on every push and PR to `main`, defined in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+
+1. **`repository-check`** — fails fast if required governance files
+   (README, LICENSE, CHANGELOG, etc.) are missing.
+2. **`terraform-plan`** — spins up an ephemeral MiniStack service
+   container, applies the bootstrap backend against it (throwaway,
+   destroyed when the job ends), then runs `terraform plan` against the
+   `development` environment. Never runs `apply` against anything
+   persistent.
+3. **`security-scan`** — runs Checkov against the full `terraform/`
+   tree and hard-fails on any finding not explicitly reviewed and
+   skip-listed with a cited ADR (see the comments directly in
+   `ci.yml`).
 
 ---
 
 ## Current Status
 
-The foundation phase is substantially complete:
+Phase 1 (`atlas-foundation`) core infrastructure is complete:
 
-- **Governance** — README, LICENSE, CONTRIBUTING, CHANGELOG, 10 ADRs
-- **State management** — remote S3 state + DynamoDB locking, applied and
-  verified against MiniStack, encrypted and point-in-time-recoverable
-- **CI/CD** — GitHub Actions runs `terraform plan` against an ephemeral
-  MiniStack service container on every push/PR
-- **Reusable modules** — `storage` (S3) and `networking` (VPC/subnets/
-  routing) fully built, applied, and verified against MiniStack;
-  `organizations`, `iam`, and `policies` built and `plan`-validated
+- **Governance** — README, LICENSE, CONTRIBUTING, CHANGELOG, 14 ADRs
+- **State management** — remote S3 state with native S3 locking
+  (ADR-0012), encrypted, versioned, public-access-blocked
+- **CI/CD** — three-job pipeline: repo validation, `terraform plan`
+  against ephemeral MiniStack, and a hard-failing Checkov security gate
+- **Reusable modules** — all four required modules (`storage`,
+  `networking`, `database`, `iam`) plus `organizations` and `policies`
+  are built; `storage` and `networking` are fully applied and verified
+  against MiniStack, `database` is applied in `development`,
+  `organizations`/`iam`/`policies` are `plan`-validated only
   (account-and-org-level AWS resources cannot be created by any local
-  emulator — see ADRs 0007–0009)
-- **Testing** — an isolated Terratest suite (`make test`) applies the
-  `storage` module against a dedicated fixture and asserts the result
-  via a real API call
-- **Security** — Checkov and tfsec run against the full Terraform tree;
-  findings triaged, fixed where appropriate, deferred with documented
-  rationale where not (ADR-0010)
+  emulator — ADRs 0007–0009)
+- **Testing** — Terratest (`make test`) applies the `storage` module
+  against an isolated fixture and asserts the result via a real API call
+- **Security** — Checkov runs in CI on every push; all findings are
+  either fixed or explicitly deferred with a cited ADR (0010, 0013)
 
-Remaining for Phase 1: an RDS module (the last of the four modules
-required by the roadmap), a formal threat model, and an incident
-runbook.
+**Remaining, tracked honestly:**
+- Automated test coverage for `networking`, `database`, `iam`, and
+  `organizations` modules (currently only `storage` has a Terratest)
+- `security`, `shared`, `staging`, `production` environments (ADR-0014)
+- Fresh Checkov/tfsec evidence capture including the `database` module
+  (current evidence in `docs/evidence/` predates it)
 
 ---
 
@@ -182,36 +265,50 @@ decisions that were later reversed. Full history in [`docs/adr/`](docs/adr/):
 | 0003 | Accept ephemeral LocalStack state *(superseded by 0004)* |
 | 0004 | Replace LocalStack with MiniStack for persistent local AWS emulation |
 | 0005 | Defer migration from DynamoDB locking to native S3 locking *(superseded by 0012)* |
-| 0012 | Migrate to native S3 locking, remove DynamoDB lock table |
 | 0006 | Accept MiniStack's crash-persistence gap |
 | 0007 | Organizations module: design/plan-validated only |
 | 0008 | IAM Identity Center module: design/plan-validated only |
 | 0009 | SCPs module: design/plan-validated only |
 | 0010 | Security scan findings triage |
+| 0011 | Database module security hardening (Secrets Manager, no plaintext password) |
+| 0012 | Migrate to native S3 locking, remove DynamoDB lock table |
+| 0013 | RDS module security scan triage (Multi-AZ, monitoring, query logging deferrals) |
+| 0014 | Defer security/shared/staging/production environment directories |
+
+---
+
+## Threat Model
+
+Full STRIDE analysis: [`docs/threat-model.md`](docs/threat-model.md).
+Summary: the primary mitigations in place are that CI's only `apply`
+targets an ephemeral, throwaway MiniStack container (never real AWS),
+database credentials are Secrets-Manager-managed and never touch
+Terraform state, and every infrastructure change is reviewed as a
+`plan` diff in a PR before merge.
 
 ---
 
 ## Security Review
 
-Checkov and tfsec run against the full Terraform tree. Full results,
-before/after fixes, and triage rationale: [`docs/evidence/security-scans/`](docs/evidence/security-scans/)
-and [ADR-0010](docs/adr/ADR-0010-security-scan-triage.md).
+Checkov runs against the full Terraform tree on every push, hard-
+failing on unreviewed findings. Full results and triage rationale:
+[`docs/evidence/security-scans/`](docs/evidence/security-scans/),
+[ADR-0010](docs/adr/ADR-0010-security-scan-triage.md), and
+[ADR-0013](docs/adr/ADR-0013-rds-security-scan-triage.md).
 
-After remediation: Checkov 20→32 checks passed, tfsec high-severity
-findings 22→6. Fixed: S3 public-access-blocking and encryption,
-DynamoDB encryption and point-in-time recovery, VPC default-security-
-group lockdown. Deferred with documented rationale: customer-managed
-KMS keys, VPC flow logs, bucket access logging, lifecycle policies.
+*(Evidence refresh pending — see Current Status above.)*
 
 ---
 
 ## Testing Strategy
 
-Terratest ([`tests/terratest/`](tests/terratest/)) applies the `storage`
-module against an isolated fixture — a dedicated root module pinning
-an explicit MiniStack-only provider, so the test cannot silently fall
-back to real AWS credentials — asserts the resulting bucket exists via
-a real `HeadBucket` call, then tears it down. Run with `make test`.
+Terratest ([`tests/terratest/`](tests/terratest/)) applies the
+`storage` module against an isolated fixture — a dedicated root module
+pinning an explicit MiniStack-only provider, so the test cannot
+silently fall back to real AWS credentials — asserts the resulting
+bucket exists via a real `HeadBucket` call, then tears it down. Run
+with `make test`. Coverage for the remaining modules is tracked in
+Current Status above.
 
 ---
 
@@ -223,6 +320,14 @@ Organizations, IAM Identity Center, SCPs) are validated via `terraform
 plan` only — these are one-time, structurally significant, account-wide
 operations that no emulator (and, deliberately, no burst-deploy here)
 creates for real.
+
+---
+
+## Incident Runbook
+
+Full runbook: [`docs/incident-runbook.md`](docs/incident-runbook.md).
+Covers: CI pipeline failures (per job), MiniStack state-persistence
+gaps (ADR-0006), suspected credential leaks, and stuck state locks.
 
 ---
 
@@ -245,6 +350,25 @@ emulator flag) that nothing remained. Rebuilt the test against a
 dedicated fixture (`tests/terratest/fixtures/storage/`) whose only job
 is to pin an explicit, MiniStack-only provider, closing the code path
 that allowed the fallback.
+
+---
+
+## Future Roadmap
+
+- Terratest coverage for `networking`, `database`, `iam`, `organizations`
+- Build out `security`, `shared`, `staging`, `production` environments
+  (ADR-0014)
+- Refresh security-scan evidence to include the `database` module
+- Phase 2 (`atlas-security`): OPA/Conftest, Semgrep, Trivy, Gitleaks,
+  Cosign/Syft SBOM signing — see the Atlas execution plan
+
+---
+
+## Demo Video
+
+Pending — a short screen recording of `make check` and a live
+`terraform apply` against MiniStack, showing matching before/after
+resource timestamps per the stop/start persistence test in ADR-0006.
 
 ---
 
