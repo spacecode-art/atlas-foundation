@@ -1,13 +1,56 @@
 
 Warning: Deprecated Parameter
 
-The parameter "dynamodb_table" is deprecated. Use parameter "use_lockfile" instead.
+The parameter "dynamodb_table" is deprecated. Use parameter "use_lockfile"
+instead.
 
 Terraform used the selected providers to generate the following execution
 plan. Resource actions are indicated with the following symbols:
   + create
 
 Terraform will perform the following actions:
+
+  # module.iam.aws_ssoadmin_managed_policy_attachment.this["AdministratorAccess-arn:aws:iam::aws:policy/AdministratorAccess"] will be created
+  + resource "aws_ssoadmin_managed_policy_attachment" "this" {
+      + id                  = (known after apply)
+      + instance_arn        = "arn:aws:sso:::instance/ssoins-example00000000"
+      + managed_policy_arn  = "arn:aws:iam::aws:policy/AdministratorAccess"
+      + managed_policy_name = (known after apply)
+      + permission_set_arn  = (known after apply)
+    }
+
+  # module.iam.aws_ssoadmin_managed_policy_attachment.this["ReadOnlyAccess-arn:aws:iam::aws:policy/ReadOnlyAccess"] will be created
+  + resource "aws_ssoadmin_managed_policy_attachment" "this" {
+      + id                  = (known after apply)
+      + instance_arn        = "arn:aws:sso:::instance/ssoins-example00000000"
+      + managed_policy_arn  = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+      + managed_policy_name = (known after apply)
+      + permission_set_arn  = (known after apply)
+    }
+
+  # module.iam.aws_ssoadmin_permission_set.this["AdministratorAccess"] will be created
+  + resource "aws_ssoadmin_permission_set" "this" {
+      + arn              = (known after apply)
+      + created_date     = (known after apply)
+      + description      = "Full administrative access"
+      + id               = (known after apply)
+      + instance_arn     = "arn:aws:sso:::instance/ssoins-example00000000"
+      + name             = "AdministratorAccess"
+      + session_duration = "PT4H"
+      + tags_all         = (known after apply)
+    }
+
+  # module.iam.aws_ssoadmin_permission_set.this["ReadOnlyAccess"] will be created
+  + resource "aws_ssoadmin_permission_set" "this" {
+      + arn              = (known after apply)
+      + created_date     = (known after apply)
+      + description      = "Read-only access for auditing"
+      + id               = (known after apply)
+      + instance_arn     = "arn:aws:sso:::instance/ssoins-example00000000"
+      + name             = "ReadOnlyAccess"
+      + session_duration = "PT8H"
+      + tags_all         = (known after apply)
+    }
 
   # module.organizations.aws_organizations_account.this["atlas-development"] will be created
   + resource "aws_organizations_account" "this" {
@@ -138,7 +181,48 @@ Terraform will perform the following actions:
       + tags_all  = (known after apply)
     }
 
-Plan: 9 to add, 0 to change, 0 to destroy.
+  # module.policies.aws_organizations_policy.this["restrict-region-us-east-1"] will be created
+  + resource "aws_organizations_policy" "this" {
+      + arn         = (known after apply)
+      + content     = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Condition = {
+                          + StringNotEquals = {
+                              + "aws:RequestedRegion" = "us-east-1"
+                            }
+                        }
+                      + Effect    = "Deny"
+                      + NotAction = [
+                          + "iam:*",
+                          + "organizations:*",
+                          + "route53:*",
+                          + "cloudfront:*",
+                          + "support:*",
+                        ]
+                      + Resource  = "*"
+                      + Sid       = "DenyOutsideUsEast1"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + description = "Deny all actions outside us-east-1"
+      + id          = (known after apply)
+      + name        = "restrict-region-us-east-1"
+      + tags_all    = (known after apply)
+      + type        = "SERVICE_CONTROL_POLICY"
+    }
+
+  # module.policies.aws_organizations_policy_attachment.this["0"] will be created
+  + resource "aws_organizations_policy_attachment" "this" {
+      + id        = (known after apply)
+      + policy_id = (known after apply)
+      + target_id = (known after apply)
+    }
+
+Plan: 15 to add, 0 to change, 0 to destroy.
 
 ─────────────────────────────────────────────────────────────────────────────
 
