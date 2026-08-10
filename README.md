@@ -367,9 +367,11 @@ that allowed the fallback.
 
 ## Demo Video
 
-Pending — a short screen recording of `make check` and a live
-`terraform apply` against MiniStack, showing matching before/after
-resource timestamps per the stop/start persistence test in ADR-0006.
+[![asciicast](https://asciinema.org/a/R0rrd8VAIEnHr3fB.svg)](https://asciinema.org/a/R0rrd8VAIEnHr3fB)
+
+A live demonstration of `make check`, Terraform infrastructure
+deployment against MiniStack, and the stop/start persistence proof
+described in ADR-0006.
 
 ---
 
