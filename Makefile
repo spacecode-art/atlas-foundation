@@ -11,6 +11,6 @@ check: security-scan test
 
 security-scan:
 	@echo "Running Checkov against terraform/..."
-	@docker run --rm -v "$(PWD)/terraform:/tf" bridgecrewio/checkov:3.3.9 \
+	@docker run --rm -v "$(PWD)/terraform:/tf" ghcr.io/bridgecrewio/checkov:3.3.9 \
 		-d /tf --quiet \
 		--skip-check CKV_AWS_144,CKV_AWS_145,CKV_AWS_119,CKV_AWS_18,CKV2_AWS_61,CKV2_AWS_62,CKV2_AWS_11,CKV_AWS_130,CKV2_AWS_30,CKV_AWS_157,CKV_AWS_353,CKV_AWS_118,CKV_AWS_293
