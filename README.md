@@ -366,7 +366,7 @@ that allowed the fallback.
 ---
 ## Demo Video
 
-[Watch the Atlas Foundation Demo](https://asciinema.org/a/R0rrd8VAIEnHr3fB)
+[![Atlas Foundation Demo](https://asciinema.org/a/c1S2iz9n5UOwvA8N.svg)](https://asciinema.org/a/c1S2iz9n5UOwvA8N)
 
 A live demonstration of `make check`, Terraform infrastructure
 deployment against MiniStack, and the stop/start persistence proof
