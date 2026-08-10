@@ -78,6 +78,13 @@ jobs:
           directory: terraform/
           quiet: true
           soft_fail: false
+          # CKV_AWS_144/145/119/18/CKV2_61/62/11 — ADR-0010 (S3/DynamoDB/VPC deferrals)
+          # CKV_AWS_130 — ADR-0010 (deliberate public-subnet public-IP design)
+          # CKV2_AWS_30 — ADR-0013 (Postgres query logging, deferred)
+          # TODO: add the remaining ADR-0013 deferral IDs (Multi-AZ, deletion
+          # protection, enhanced monitoring, performance insights) — copy the
+          # exact CKV_AWS_xxx from the Actions log, don't guess them.
           skip_check: >-
             CKV_AWS_144,CKV_AWS_145,CKV_AWS_119,CKV_AWS_18,
-            CKV2_AWS_61,CKV2_AWS_62,CKV2_AWS_11
+            CKV2_AWS_61,CKV2_AWS_62,CKV2_AWS_11,
+            CKV_AWS_130,CKV2_AWS_30
