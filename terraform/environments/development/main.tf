@@ -3,7 +3,7 @@ module "app_storage" {
 
   bucket_name       = "atlas-dev-app-storage"
   environment       = "development"
-  enable_versioning = false
+  enable_versioning = true
 }
 
 module "network" {
