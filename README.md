@@ -364,10 +364,9 @@ that allowed the fallback.
   Cosign/Syft SBOM signing — see the Atlas execution plan
 
 ---
-
 ## Demo Video
 
-[![asciicast](https://asciinema.org/a/R0rrd8VAIEnHr3fB.svg)](https://asciinema.org/a/R0rrd8VAIEnHr3fB)
+[Watch the Atlas Foundation Demo](https://asciinema.org/a/R0rrd8VAIEnHr3fB)
 
 A live demonstration of `make check`, Terraform infrastructure
 deployment against MiniStack, and the stop/start persistence proof
