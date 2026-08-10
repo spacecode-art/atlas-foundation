@@ -181,7 +181,8 @@ decisions that were later reversed. Full history in [`docs/adr/`](docs/adr/):
 | 0002 | Layered Terraform repository structure (bootstrap/modules/environments) |
 | 0003 | Accept ephemeral LocalStack state *(superseded by 0004)* |
 | 0004 | Replace LocalStack with MiniStack for persistent local AWS emulation |
-| 0005 | Defer migration from DynamoDB locking to native S3 locking |
+| 0005 | Defer migration from DynamoDB locking to native S3 locking *(superseded by 0012)* |
+| 0012 | Migrate to native S3 locking, remove DynamoDB lock table |
 | 0006 | Accept MiniStack's crash-persistence gap |
 | 0007 | Organizations module: design/plan-validated only |
 | 0008 | IAM Identity Center module: design/plan-validated only |
