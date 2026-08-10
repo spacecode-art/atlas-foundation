@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/).
+### Fixed
+- RDS backup retention and IAM database authentication enabled — cheap,
+  zero-tradeoff fixes surfaced by a second-opinion tfsec scan (ADR-0015)
+- Dev `app_storage` bucket versioning enabled — was an unreviewed
+  oversight, not a deliberate deferral
+- Security-scan evidence refreshed to reflect current state: Checkov
+  45/0, tfsec 38 passed/16 findings, all traced to cited ADRs
+- Corrected local `security-scan` Makefile target's Checkov image
+  registry (`ghcr.io/bridgecrewio/checkov`, not Docker Hub)
 
 ## [Unreleased]
 

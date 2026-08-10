@@ -248,8 +248,6 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
 - Automated test coverage for `networking`, `database`, `iam`, and
   `organizations` modules (currently only `storage` has a Terratest)
 - `security`, `shared`, `staging`, `production` environments (ADR-0014)
-- Fresh Checkov/tfsec evidence capture including the `database` module
-  (current evidence in `docs/evidence/` predates it)
 
 ---
 
@@ -274,6 +272,7 @@ decisions that were later reversed. Full history in [`docs/adr/`](docs/adr/):
 | 0012 | Migrate to native S3 locking, remove DynamoDB lock table |
 | 0013 | RDS module security scan triage (Multi-AZ, monitoring, query logging deferrals) |
 | 0014 | Defer security/shared/staging/production environment directories |
+| 0015 | RDS second-opinion (tfsec) scan triage — backup retention, IAM auth |
 
 ---
 
@@ -291,12 +290,14 @@ Terraform state, and every infrastructure change is reviewed as a
 ## Security Review
 
 Checkov runs against the full Terraform tree on every push, hard-
-failing on unreviewed findings. Full results and triage rationale:
+failing on unreviewed findings. As of 2026-08-10: **Checkov 45 passed,
+0 failed**; **tfsec (second-opinion scan, run manually) 38 passed, 16
+findings (6 high, 8 medium, 2 low)** — every one of the 16 traces to a
+cited ADR (0010, 0011, 0013), none are unreviewed. Full results:
 [`docs/evidence/security-scans/`](docs/evidence/security-scans/),
-[ADR-0010](docs/adr/ADR-0010-security-scan-triage.md), and
-[ADR-0013](docs/adr/ADR-0013-rds-security-scan-triage.md).
-
-*(Evidence refresh pending — see Current Status above.)*
+[ADR-0010](docs/adr/ADR-0010-security-scan-triage.md),
+[ADR-0013](docs/adr/ADR-0013-rds-security-scan-triage.md), and
+[ADR-0015](docs/adr/ADR-0015-rds-second-scan-triage.md).
 
 ---
 
