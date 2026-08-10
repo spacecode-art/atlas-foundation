@@ -54,6 +54,8 @@ resource "aws_db_instance" "this" {
   multi_az                     = var.multi_az
   copy_tags_to_snapshot        = true
   auto_minor_version_upgrade   = true
+  backup_retention_period      = var.backup_retention_period
+  iam_database_authentication_enabled = true
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   tags = {
