@@ -1,7 +1,7 @@
-bucket         = "atlas-terraform-state"
-key            = "development/terraform.tfstate"
-region         = "us-east-1"
-dynamodb_table = "atlas-terraform-locks"
+bucket       = "atlas-terraform-state"
+key          = "development/terraform.tfstate"
+region       = "us-east-1"
+use_lockfile = true
 
 skip_credentials_validation = true
 skip_metadata_api_check     = true
