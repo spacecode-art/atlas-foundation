@@ -4,7 +4,6 @@
 *.tfstate
 *.tfstate.*
 .terraform/
-.terraform.lock.hcl
 crash.log
 override.tf
 override.tf.json
@@ -57,7 +56,5 @@ coverage.out
 # -----------------------------
 *.log
 
-.terraform/
-*.tfstate
-*.tfstate.backup
+
 tracking.text
