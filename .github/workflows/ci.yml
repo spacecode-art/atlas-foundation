@@ -81,10 +81,12 @@ jobs:
           # CKV_AWS_144/145/119/18/CKV2_61/62/11 — ADR-0010 (S3/DynamoDB/VPC deferrals)
           # CKV_AWS_130 — ADR-0010 (deliberate public-subnet public-IP design)
           # CKV2_AWS_30 — ADR-0013 (Postgres query logging, deferred)
-          # TODO: add the remaining ADR-0013 deferral IDs (Multi-AZ, deletion
-          # protection, enhanced monitoring, performance insights) — copy the
-          # exact CKV_AWS_xxx from the Actions log, don't guess them.
+          # CKV_AWS_157 — ADR-0013 (Multi-AZ, cost tradeoff, dev-only)
+          # CKV_AWS_353 — ADR-0013 (Performance Insights, cost tradeoff, dev-only)
+          # CKV_AWS_118 — ADR-0013 (Enhanced Monitoring, cost tradeoff, dev-only)
+          # CKV_AWS_293 — ADR-0013 (deletion protection, configurable, off by default in dev)
           skip_check: >-
             CKV_AWS_144,CKV_AWS_145,CKV_AWS_119,CKV_AWS_18,
             CKV2_AWS_61,CKV2_AWS_62,CKV2_AWS_11,
-            CKV_AWS_130,CKV2_AWS_30
+            CKV_AWS_130,CKV2_AWS_30,CKV_AWS_157,
+            CKV_AWS_353,CKV_AWS_118,CKV_AWS_293
