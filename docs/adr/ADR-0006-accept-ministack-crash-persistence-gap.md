@@ -1,34 +1,30 @@
-# ADR-0006: Accept MiniStack Crash-Persistence Gap
+## Update (2026-08-11)
 
-## Status
-Accepted
+Re-tested via three independent stop/start cycles while recording the
+Phase 1 demo video, including one with an extended 30-second `docker
+stop` grace period. All three reproduced the same result: the native
+S3 lockfile object (used by Terraform's `use_lockfile` locking,
+ADR-0012) does not survive a *graceful* `docker stop`/`start`, not
+just an abrupt crash as originally scoped by this ADR. The extended
+grace period made no observable difference, ruling out an
+insufficient-flush-time explanation.
 
-## Date
-2026-08-04
+Checked `docker exec ministack ps aux` — PID 1 is `python -m
+ministack` directly, not a shell wrapper, ruling out a signal-
+forwarding issue at the container level. The more likely explanation:
+MiniStack's documented flush-on-shutdown behavior depends on an ASGI
+`lifespan.shutdown` event, which is normally triggered by the ASGI
+server catching `SIGTERM` and running a graceful sequence. Python's
+default handling of `SIGTERM` (unlike `SIGINT`) is immediate process
+termination unless the application explicitly intercepts it — if
+MiniStack's entrypoint doesn't register that handler in a path that
+reaches `lifespan.shutdown`, `docker stop` would kill the process
+before any flush runs, independent of grace period length. Not
+verified against MiniStack's source; stated here as the best-supported
+explanation, not a confirmed root cause.
 
-## Context
-MiniStack's persistence (PERSIST_STATE=1, S3_PERSIST=1) reliably survives
-graceful stop/start cycles. It does not reliably survive abrupt container
-death (observed: exit code 255, likely a snapshot-interval gap) — older
-resources (bootstrap's bucket and lock table) survived a real crash,
-while a newer resource (the dev module's bucket) did not.
-
-## Decision
-Accept this as a known limitation. Do not pursue a write-through or
-more aggressive persistence mode. Rely on existing habits (`make check`
-before starting work; `terraform apply` to self-heal any detected drift)
-to catch and recover from this automatically.
-
-## Rationale
-- This is a local development/portfolio environment, not a production
-  system with real users
-- The detection and recovery workflow already exists and already works
-- Investigating MiniStack's internals further has low payoff relative
-  to time cost, versus continuing Phase 1's remaining scope
-
-## Consequences
-### Positive
-- No time lost chasing a deeper guarantee not needed for this project
-### Negative
-- An uncontrolled MiniStack crash can silently lose recent work until
-  the next `terraform plan`/`apply` surfaces the drift
+This narrows the original gap from "abrupt crashes only" to "any
+container restart, graceful or not, for at least the state lock
+object." The Demo Video (see README) does not attempt to demonstrate
+MiniStack restart persistence live as a result; it demonstrates the
+pipeline and a stable `terraform plan` instead.
