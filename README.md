@@ -273,6 +273,7 @@ decisions that were later reversed. Full history in [`docs/adr/`](docs/adr/):
 | 0013 | RDS module security scan triage (Multi-AZ, monitoring, query logging deferrals) |
 | 0014 | Defer security/shared/staging/production environment directories |
 | 0015 | RDS second-opinion (tfsec) scan triage — backup retention, IAM auth |
+| 0016 | MiniStack RDS modify-in-place does not persist (distinct from the lock-persistence gap in ADR-0006) |
 
 ---
 
@@ -366,11 +367,16 @@ that allowed the fallback.
 ---
 ## Demo Video
 
-[![Atlas Foundation Demo](https://asciinema.org/a/c1S2iz9n5UOwvA8N.svg)](https://asciinema.org/a/c1S2iz9n5UOwvA8N)
+[![Atlas Foundation Demo](https://asciinema.org/a/IgoRlFyJlLNEODre.svg)](https://asciinema.org/a/IgoRlFyJlLNEODre)
 
-A live demonstration of `make check`, Terraform infrastructure
-deployment against MiniStack, and the stop/start persistence proof
-described in ADR-0006.
+A live demonstration of `make check` and `terraform plan` running
+cleanly against MiniStack. This clip intentionally does not attempt a
+container-restart persistence proof — that was tested separately,
+three times, and found not to hold for the native S3 lock object; see
+the [ADR-0006 update](docs/adr/ADR-0006-accept-ministack-crash-persistence-gap.md)
+for the full investigation, and [ADR-0016](docs/adr/ADR-0016-ministack-rds-modify-persistence-gap.md)
+for a related MiniStack RDS-modify finding surfaced during the same
+testing.
 
 ---
 
