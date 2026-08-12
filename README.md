@@ -245,8 +245,10 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
   either fixed or explicitly deferred with a cited ADR (0010, 0013)
 
 **Remaining, tracked honestly:**
-- Automated test coverage for `networking`, `database`, `iam`, and
-  `organizations` modules (currently only `storage` has a Terratest)
+- Automated test coverage for `organizations` (only module left
+  without any Terratest, plan-only or otherwise)
+- `database` Terratest remains excluded pending a MiniStack RDS fix
+  (ADR-0017, ADR-0018) — this is a tooling defect, not untested code
 - `security`, `shared`, `staging`, `production` environments (ADR-0014)
 
 ---
@@ -328,10 +330,11 @@ isolated test instance with the real `development` environment's
 database, causing the real instance to be destroyed (ADR-0018, since
 recovered via a clean `terraform apply`). The `database` module's own
 Terraform code is not implicated — `storage` and `networking` destroy
-correctly against the same MiniStack instance. This module's
-Terratest is excluded from CI and from routine local runs until the
-underlying defect is better understood; see the
-[incident runbook](docs/incident-runbook.md) for the response
+correctly against the same MiniStack instance. This module's Terratest requires the `ministack_unsafe_rds` build tag
+and is invoked only via `make test-database-unsafe` — a compiler-
+enforced exclusion, not just a documented convention (see ADR-0019,
+which exists because the convention alone failed once already). See
+the [incident runbook](docs/incident-runbook.md) for the response
 procedure if this recurs.
 
 ---
@@ -344,6 +347,24 @@ Organizations, IAM Identity Center, SCPs) are validated via `terraform
 plan` only — these are one-time, structurally significant, account-wide
 operations that no emulator (and, deliberately, no burst-deploy here)
 creates for real.
+
+**Cost Analysis:** with nothing deployed to real AWS, there's no bill
+to analyze yet. The `atlas-finops` repo (Phase 7) is where a real
+Cost Explorer/CUR analysis pipeline gets built, seeded either by small
+burst-deploy data from later phases or by synthetic CUR datasets —
+see the Atlas execution plan.
+
+---
+
+## Monitoring
+
+Not yet built — deliberately deferred to `atlas-observability`
+(Phase 3), which owns the full LGTM stack (Prometheus, Grafana, Loki,
+Tempo) and OpenTelemetry instrumentation for the platform. Building
+monitoring here, ahead of Phase 3's dedicated observability repo,
+would be scope creep in the same way the deferred `security`/`shared`/
+`staging`/`production` environments were (ADR-0014). This section
+exists so that absence reads as a scoped decision, not an oversight.
 
 ---
 
@@ -379,10 +400,13 @@ that allowed the fallback.
 
 ## Future Roadmap
 
-- Terratest coverage for `networking`, `database`, `iam`, `organizations`
+- Terratest coverage for `organizations` (plan-only, same pattern as
+  `iam` — no AWS account, real or emulated, creates an Organization
+  via Terraform)
+- Resolve the MiniStack defects blocking `database` Terratest
+  (ADR-0017, ADR-0018), or replace MiniStack's RDS emulation
 - Build out `security`, `shared`, `staging`, `production` environments
   (ADR-0014)
-- Refresh security-scan evidence to include the `database` module
 - Phase 2 (`atlas-security`): OPA/Conftest, Semgrep, Trivy, Gitleaks,
   Cosign/Syft SBOM signing — see the Atlas execution plan
 

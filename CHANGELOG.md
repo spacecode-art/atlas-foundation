@@ -2,15 +2,6 @@
 
 All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/).
-### Fixed
-- RDS backup retention and IAM database authentication enabled — cheap,
-  zero-tradeoff fixes surfaced by a second-opinion tfsec scan (ADR-0015)
-- Dev `app_storage` bucket versioning enabled — was an unreviewed
-  oversight, not a deliberate deferral
-- Security-scan evidence refreshed to reflect current state: Checkov
-  45/0, tfsec 38 passed/16 findings, all traced to cited ADRs
-- Corrected local `security-scan` Makefile target's Checkov image
-  registry (`ghcr.io/bridgecrewio/checkov`, not Docker Hub)
 
 ## [Unreleased]
 
@@ -22,6 +13,22 @@ follows [Keep a Changelog](https://keepachangelog.com/).
   environment directories
 - `make check` and `make security-scan` targets (previously referenced
   by ADR-0006 but never implemented)
+- Terratest coverage for `networking` (VPC/subnet split assertions)
+  and `iam` (plan-only, per ADR-0008)
+- ADR-0017, ADR-0018: `database` module Terratest attempted, found
+  unsafe against current MiniStack (destroy hangs; cross-instance ID
+  collision that destroyed the real `development` RDS instance),
+  excluded from CI and routine local runs pending upstream fix
+
+### Fixed
+- RDS backup retention and IAM database authentication enabled — cheap,
+  zero-tradeoff fixes surfaced by a second-opinion tfsec scan (ADR-0015)
+- Dev `app_storage` bucket versioning enabled — was an unreviewed
+  oversight, not a deliberate deferral
+- Security-scan evidence refreshed to reflect current state: Checkov
+  45/0, tfsec 38 passed/16 findings, all traced to cited ADRs
+- Corrected local `security-scan` Makefile target's Checkov image
+  registry (`ghcr.io/bridgecrewio/checkov`, not Docker Hub)
 
 ## [2026-08-10]
 

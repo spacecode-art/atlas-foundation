@@ -1,3 +1,11 @@
+//go:build ministack_unsafe_rds
+
+// This file is excluded from the default build (no ministack_unsafe_rds
+// build tag = not compiled, not just not run). See ADR-0017, ADR-0018,
+// ADR-0019. Run deliberately via `make test-database-unsafe`, never via
+// plain `make test` / `make check`, and never against a MiniStack
+// instance holding anything you care about.
+
 package test
 
 import (

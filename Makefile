@@ -1,4 +1,4 @@
-.PHONY: test check security-scan
+.PHONY: test check security-scan test-database-unsafe
 
 test:
 	@echo "Checking MiniStack is reachable..."
@@ -8,6 +8,15 @@ test:
 
 check: security-scan test
 	@echo "All checks passed."
+
+test-database-unsafe:
+	@echo "WARNING: creates a real RDS instance against MiniStack."
+	@echo "Known to hang on destroy (ADR-0017), has caused a cross-instance"
+	@echo "ID collision that destroyed a real dev database (ADR-0018), and"
+	@echo "asserts on a field MiniStack does not populate (ADR-0019)."
+	@echo "Run only when actively investigating those defects, and never"
+	@echo "against a MiniStack instance holding anything you care about."
+	@cd tests/terratest && go test -tags ministack_unsafe_rds -run TestDatabaseModule -v -timeout 10m
 
 security-scan:
 	@echo "Running Checkov against terraform/..."
