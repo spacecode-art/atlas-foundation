@@ -1,11 +1,18 @@
+locals {
+  common_tags = {
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = var.owner
+  }
+}
+
 resource "aws_db_subnet_group" "this" {
   name       = "atlas-${var.environment}-db-subnet-group"
   subnet_ids = var.private_subnet_ids
 
-  tags = {
-    Name        = "atlas-${var.environment}-db-subnet-group"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-db-subnet-group"
+  })
 }
 
 resource "aws_security_group" "db" {
@@ -13,10 +20,9 @@ resource "aws_security_group" "db" {
   description = "Allow database access only from specified security groups"
   vpc_id      = var.vpc_id
 
-  tags = {
-    Name        = "atlas-${var.environment}-db-sg"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-db-sg"
+  })
 }
 
 resource "aws_security_group_rule" "db_ingress" {
@@ -58,9 +64,8 @@ resource "aws_db_instance" "this" {
   iam_database_authentication_enabled = true
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
-  tags = {
-    Name        = "atlas-${var.environment}-db"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-db"
+  })
 }
 

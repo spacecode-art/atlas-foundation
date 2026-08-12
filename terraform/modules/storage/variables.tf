@@ -13,3 +13,8 @@ variable "enable_versioning" {
   type        = bool
   default     = false
 }
+
+variable "owner" {
+  description = "Team or individual accountable for this resource (tagging policy requires this — see atlas-security policies/opa/tagging.rego)"
+  type        = string
+}

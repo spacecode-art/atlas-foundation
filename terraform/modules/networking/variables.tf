@@ -23,3 +23,8 @@ variable "private_subnet_cidrs" {
   description = "CIDR blocks for private subnets, one per AZ"
   type        = list(string)
 }
+
+variable "owner" {
+  description = "Team or individual accountable for this resource (tagging policy requires this — see atlas-security policies/opa/tagging.rego)"
+  type        = string
+}

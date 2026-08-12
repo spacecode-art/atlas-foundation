@@ -1,12 +1,19 @@
+locals {
+  common_tags = {
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = var.owner
+  }
+}
+
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = {
-    Name        = "atlas-${var.environment}-vpc"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-vpc"
+  })
 }
 
 resource "aws_default_security_group" "this" {
@@ -16,19 +23,17 @@ resource "aws_default_security_group" "this" {
   # nothing can accidentally attach to it and inherit open access.
   # Real workloads should use purpose-built security groups instead.
 
-  tags = {
-    Name        = "atlas-${var.environment}-default-sg-locked"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-default-sg-locked"
+  })
 }
 
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
-  tags = {
-    Name        = "atlas-${var.environment}-igw"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-igw"
+  })
 }
 
 resource "aws_subnet" "public" {
@@ -38,11 +43,10 @@ resource "aws_subnet" "public" {
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "atlas-${var.environment}-public-${count.index}"
-    Environment = var.environment
-    Tier        = "public"
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-public-${count.index}"
+    Tier = "public"
+  })
 }
 
 resource "aws_subnet" "private" {
@@ -51,11 +55,10 @@ resource "aws_subnet" "private" {
   cidr_block        = var.private_subnet_cidrs[count.index]
   availability_zone = var.availability_zones[count.index]
 
-  tags = {
-    Name        = "atlas-${var.environment}-private-${count.index}"
-    Environment = var.environment
-    Tier        = "private"
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-private-${count.index}"
+    Tier = "private"
+  })
 }
 
 resource "aws_route_table" "public" {
@@ -66,10 +69,9 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.this.id
   }
 
-  tags = {
-    Name        = "atlas-${var.environment}-public-rt"
-    Environment = var.environment
-  }
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-public-rt"
+  })
 }
 
 resource "aws_route_table_association" "public" {

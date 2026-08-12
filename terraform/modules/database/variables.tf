@@ -3,6 +3,11 @@ variable "environment" {
   type        = string
 }
 
+variable "owner" {
+  description = "Team or individual accountable for this resource (tagging policy requires this — see atlas-security policies/opa/tagging.rego)"
+  type        = string
+}
+
 variable "vpc_id" {
   description = "VPC to place the database in"
   type        = string

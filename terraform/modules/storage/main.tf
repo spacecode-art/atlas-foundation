@@ -1,10 +1,15 @@
+locals {
+  common_tags = {
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = var.owner
+  }
+}
+
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
 
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
+  tags = local.common_tags
 }
 
 resource "aws_s3_bucket_versioning" "this" {
