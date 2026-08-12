@@ -59,3 +59,10 @@ coverage.out
 
 tracking.text
 *.tfplan
+# Terraform plan artifacts — may contain sensitive values, always regenerable
+*.tfplan
+plan.json
+
+# Stray binaries/extracted tarballs from local tooling installs
+conftest
+conftest.tar.gz
