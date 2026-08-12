@@ -68,7 +68,15 @@ jobs:
         working-directory: terraform/environments/development
         run: |
           terraform init -backend-config=backend.hcl
-          terraform plan
+          terraform plan -out=plan.tfplan
+          terraform show -json plan.tfplan > plan.json
+
+      - name: Upload plan JSON for policy scan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-development
+          path: terraform/environments/development/plan.json
+          retention-days: 1
 
   security-scan:
     name: Security Scan
@@ -87,3 +95,10 @@ jobs:
         CKV2_AWS_61,CKV2_AWS_62,CKV2_AWS_11,
         CKV_AWS_130,CKV2_AWS_30,CKV_AWS_157,
         CKV_AWS_353,CKV_AWS_118,CKV_AWS_293
+
+  policy-scan:
+    name: Policy Scan
+    needs: terraform-plan
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-opa-scan.yml@main
+    with:
+      plan-artifact-name: terraform-plan-development
