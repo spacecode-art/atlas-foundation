@@ -9,6 +9,12 @@ on:
       - main
 
 jobs:
+  secrets-scan:
+    name: Secrets Scan
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-secrets-scan.yml@main
+    with:
+      fail-on-findings: true
+
   repository-check:
     name: Repository Validation
     runs-on: ubuntu-latest
