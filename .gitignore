@@ -58,3 +58,4 @@ coverage.out
 
 
 tracking.text
+*.tfplan
