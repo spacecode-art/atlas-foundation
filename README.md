@@ -304,13 +304,35 @@ cited ADR (0010, 0011, 0013), none are unreviewed. Full results:
 
 ## Testing Strategy
 
-Terratest ([`tests/terratest/`](tests/terratest/)) applies the
-`storage` module against an isolated fixture — a dedicated root module
-pinning an explicit MiniStack-only provider, so the test cannot
-silently fall back to real AWS credentials — asserts the resulting
-bucket exists via a real `HeadBucket` call, then tears it down. Run
-with `make test`. Coverage for the remaining modules is tracked in
-Current Status above.
+Terratest ([`tests/terratest/`](tests/terratest/)) covers three
+modules, each using a dedicated isolated fixture — a root module
+pinning an explicit MiniStack-only provider so no test can silently
+fall back to real AWS credentials:
+
+- **`storage`** — applies, asserts the bucket exists via a real
+  `HeadBucket` call, destroys cleanly. Run with `make test`.
+- **`networking`** — applies a full VPC/subnet stack in an isolated
+  CIDR range, asserts the exact public/private `MapPublicIpOnLaunch`
+  split per subnet (the module's actual purpose, not just resource
+  existence), destroys cleanly.
+- **`iam`** — plan-only (no `apply`), asserting the correct resources
+  and actions appear in the Terraform plan JSON. Consistent with
+  ADR-0008: no AWS account, real or emulated, supports creating an
+  Identity Center instance via Terraform.
+
+**`database` module coverage is intentionally absent**, not merely
+unwritten. A Terratest fixture was built and run; it surfaced two real
+MiniStack defects — a destroy that hangs indefinitely (ADR-0017) and,
+more seriously, a case where MiniStack's RDS emulation conflated an
+isolated test instance with the real `development` environment's
+database, causing the real instance to be destroyed (ADR-0018, since
+recovered via a clean `terraform apply`). The `database` module's own
+Terraform code is not implicated — `storage` and `networking` destroy
+correctly against the same MiniStack instance. This module's
+Terratest is excluded from CI and from routine local runs until the
+underlying defect is better understood; see the
+[incident runbook](docs/incident-runbook.md) for the response
+procedure if this recurs.
 
 ---
 

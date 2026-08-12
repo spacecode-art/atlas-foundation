@@ -60,3 +60,33 @@ an interrupted `apply`.
 This is currently a single-maintainer portfolio project — there is no
 on-call rotation. In a real multi-engineer context, this section would
 name who to page and when.
+## Local Testing Tool Destroys Unintended Resources (MiniStack RDS)
+
+**Symptom:** A `terraform destroy` run inside an isolated test fixture
+shows or destroys a resource identifier that doesn't match the
+fixture's own resources (e.g., a `development` environment's real
+`atlas-development-db` instead of a test-only database).
+
+**Immediate response:**
+1. Do not approve any pending `destroy`/`apply` prompt until the
+   resource identifiers in the plan output are individually verified
+   against what that working directory should own.
+2. If a destroy has already completed against an unintended resource,
+   check `aws rds describe-db-instances` (or the relevant service's
+   `describe`/`list` command) immediately to confirm scope of loss.
+3. Recreate the lost resource via `terraform apply` in its correct
+   environment directory — Terraform's own state and config remain the
+   source of truth, so recovery is a normal apply, not a manual
+   rebuild, as long as no data existed outside what Terraform manages.
+4. File or update an ADR documenting the specific defect (see
+   ADR-0017, ADR-0018) rather than treating it as a one-off mistake.
+
+**Root cause reference:** ADR-0018 — MiniStack's RDS emulation has
+been observed to conflate state across unrelated DB instances under
+conditions not yet fully characterized. This is a known, open risk
+when running Terratest suites that create/destroy RDS resources
+locally.
+
+**Prevention:** The `database` module's Terratest is intentionally
+excluded from both CI and routine local execution until this defect
+is better understood (ADR-0017, ADR-0018).

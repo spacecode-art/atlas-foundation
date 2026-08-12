@@ -86,3 +86,22 @@ GitHub itself as a platform).
 - Enhanced monitoring / Performance Insights on RDS are deferred
   (ADR-0013) — reduced visibility into anomalous database access
   patterns until that's revisited.
+
+
+### Tampering (addendum — local tooling risk)
+- **Threat:** A local AWS emulator (MiniStack) used for testing
+  conflates state between unrelated Terraform-managed resources,
+  causing a destroy action intended for a disposable test resource to
+  instead destroy real environment infrastructure. Observed directly:
+  a Terratest fixture's `terraform destroy`, run against an isolated
+  test database (separate VPC, separate state, separate identifier),
+  instead destroyed the real `development` environment's RDS instance
+  — see ADR-0018.
+- **Mitigation:** Treat any resource identifier, ARN, or tag shown in
+  a `plan` or `destroy` output that doesn't match what's expected for
+  that specific working directory as a hard stop requiring
+  investigation before approving. Do not run destructive Terratest
+  suites against MiniStack RDS resources without this verification
+  step. This is a testing-tool risk distinct from the CI pipeline risk
+  covered under Spoofing above — CI never runs `destroy` against
+  anything; this risk is specific to local, manual test execution.
