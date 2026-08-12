@@ -72,7 +72,7 @@ jobs:
 
   security-scan:
     name: Security Scan
-    uses: YOUR_GITHUB_USERNAME/atlas-security/.github/workflows/reusable-iac-scan.yml@main
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-iac-scan.yml@main
     with:
       directory: terraform/
       # CKV_AWS_144/145/119/18/CKV2_61/62/11 — ADR-0010 (S3/DynamoDB/VPC deferrals)
