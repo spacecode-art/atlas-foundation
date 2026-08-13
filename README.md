@@ -206,20 +206,28 @@ make check
 
 ## CI/CD
 
-Three jobs run on every push and PR to `main`, defined in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+Four jobs run on every push and PR to `main`, defined in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). Two of them
+call reusable workflows owned by [`atlas-security`](https://github.com/spacecode-art/atlas-security)
+rather than duplicating scan logic inline — see that repo for the
+rationale (centralized policy, one source of truth, avoids
+per-repo skip-list drift).
 
-1. **`repository-check`** — fails fast if required governance files
+1. **`secrets-scan`** — calls `atlas-security`'s reusable Gitleaks
+   workflow against the full git history. This repo had zero secrets
+   scanning until this was added; not a routine addition.
+2. **`repository-check`** — fails fast if required governance files
    (README, LICENSE, CHANGELOG, etc.) are missing.
-2. **`terraform-plan`** — spins up an ephemeral MiniStack service
+3. **`terraform-plan`** — spins up an ephemeral MiniStack service
    container, applies the bootstrap backend against it (throwaway,
    destroyed when the job ends), then runs `terraform plan` against the
    `development` environment. Never runs `apply` against anything
    persistent.
-3. **`security-scan`** — runs Checkov against the full `terraform/`
-   tree and hard-fails on any finding not explicitly reviewed and
-   skip-listed with a cited ADR (see the comments directly in
-   `ci.yml`).
+4. **`security-scan`** — calls `atlas-security`'s reusable IaC scan
+   workflow (Checkov hard gate + tfsec non-blocking second opinion)
+   against the full `terraform/` tree. The skip-list and its ADR
+   citations live in this repo's `ci.yml` — that data is repo-specific
+   even though the scanning mechanism is shared.
 
 ---
 
@@ -230,8 +238,11 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
 - **Governance** — README, LICENSE, CONTRIBUTING, CHANGELOG, 14 ADRs
 - **State management** — remote S3 state with native S3 locking
   (ADR-0012), encrypted, versioned, public-access-blocked
-- **CI/CD** — three-job pipeline: repo validation, `terraform plan`
-  against ephemeral MiniStack, and a hard-failing Checkov security gate
+- **CI/CD** — four-job pipeline: Gitleaks secrets scan and Checkov/
+  tfsec IaC scan both consumed as reusable workflows from
+  `atlas-security` (proving that repo's platform claim on a real
+  consumer), repo validation, and `terraform plan` against ephemeral
+  MiniStack
 - **Reusable modules** — all four required modules (`storage`,
   `networking`, `database`, `iam`) plus `organizations` and `policies`
   are built; `storage` and `networking` are fully applied and verified
@@ -241,7 +252,8 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
   emulator — ADRs 0007–0009)
 - **Testing** — Terratest (`make test`) applies the `storage` module
   against an isolated fixture and asserts the result via a real API call
-- **Security** — Checkov runs in CI on every push; all findings are
+- **Security** — Checkov and Gitleaks both run in CI on every push,
+  via `atlas-security`'s reusable workflows; all Checkov findings are
   either fixed or explicitly deferred with a cited ADR (0010, 0013)
 
 **Remaining, tracked honestly:**
