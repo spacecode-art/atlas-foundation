@@ -102,3 +102,13 @@ jobs:
     uses: spacecode-art/atlas-security/.github/workflows/reusable-opa-scan.yml@main
     with:
       plan-artifact-name: terraform-plan-development
+  
+  sast-scan:
+    name: SAST Scan
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-sast-scan.yml@main
+    with:
+      directory: terraform/
+      config: p/terraform
+      # fail-on-findings intentionally false — soft rollout, see
+      # atlas-security ADR-0003. Revisit once a baseline is established.
+      fail-on-findings: false 
