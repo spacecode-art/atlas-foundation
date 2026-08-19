@@ -28,4 +28,5 @@ module "storage" {
   bucket_name       = var.bucket_name
   environment       = var.environment
   enable_versioning = var.enable_versioning
+  owner             = var.owner
 }

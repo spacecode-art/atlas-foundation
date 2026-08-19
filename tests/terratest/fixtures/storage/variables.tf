@@ -10,3 +10,8 @@ variable "enable_versioning" {
   type    = bool
   default = false
 }
+
+variable "owner" {
+  type    = string
+  default = "terratest"
+}
