@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNetworkingModuleCreatesCorrectSubnetSplit(t *testing.T) {
@@ -24,7 +25,7 @@ func TestNetworkingModuleCreatesCorrectSubnetSplit(t *testing.T) {
 	privateSubnetIDs := terraform.OutputList(t, terraformOptions, "private_subnet_ids")
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	client := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
 		o.BaseEndpoint = aws.String("http://localhost:4566")
@@ -34,8 +35,8 @@ func TestNetworkingModuleCreatesCorrectSubnetSplit(t *testing.T) {
 	vpcOut, err := client.DescribeVpcs(context.TODO(), &ec2.DescribeVpcsInput{
 		VpcIds: []string{vpcID},
 	})
-	assert.NoError(t, err)
-	assert.Len(t, vpcOut.Vpcs, 1)
+	require.NoError(t, err)
+	require.Len(t, vpcOut.Vpcs, 1)
 	assert.Equal(t, "10.99.0.0/16", *vpcOut.Vpcs[0].CidrBlock)
 
 	// Assertion 2: exactly 2 public + 2 private subnets were created
