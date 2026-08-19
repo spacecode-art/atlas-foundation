@@ -206,8 +206,8 @@ make check
 
 ## CI/CD
 
-Four jobs run on every push and PR to `main`, defined in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml). Two of them
+Six jobs run on every push and PR to `main`, defined in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). Four of them
 call reusable workflows owned by [`atlas-security`](https://github.com/spacecode-art/atlas-security)
 rather than duplicating scan logic inline — see that repo for the
 rationale (centralized policy, one source of truth, avoids
@@ -228,6 +228,15 @@ per-repo skip-list drift).
    against the full `terraform/` tree. The skip-list and its ADR
    citations live in this repo's `ci.yml` — that data is repo-specific
    even though the scanning mechanism is shared.
+5. **`policy-scan`** — runs after `terraform-plan`, feeding its plan
+   JSON artifact into `atlas-security`'s reusable OPA/Conftest workflow.
+   Currently enforces mandatory `Owner`/`ManagedBy` tagging
+   (`policies/opa/tagging.rego` in `atlas-security`) — this is what
+   caught the drift documented in ADR-0020.
+6. **`sast-scan`** — calls `atlas-security`'s reusable Semgrep workflow
+   against `terraform/` with the `p/terraform` ruleset. Soft-fail only
+   during baseline rollout (see `atlas-security` ADR-0003 for
+   graduation criteria to hard-fail).
 
 ---
 
@@ -238,11 +247,12 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
 - **Governance** — README, LICENSE, CONTRIBUTING, CHANGELOG, 14 ADRs
 - **State management** — remote S3 state with native S3 locking
   (ADR-0012), encrypted, versioned, public-access-blocked
-- **CI/CD** — four-job pipeline: Gitleaks secrets scan and Checkov/
-  tfsec IaC scan both consumed as reusable workflows from
-  `atlas-security` (proving that repo's platform claim on a real
-  consumer), repo validation, and `terraform plan` against ephemeral
-  MiniStack
+- **CI/CD** — six-job pipeline: Gitleaks secrets scan, Checkov/tfsec
+  IaC scan, OPA/Conftest tagging policy scan, and Semgrep SAST all
+  consumed as reusable workflows from `atlas-security` (proving that
+  repo's platform claim on a real consumer), plus repo validation and
+  `terraform plan` against ephemeral MiniStack. OPA has already caught
+  one real finding in production use (ADR-0020).
 - **Reusable modules** — all four required modules (`storage`,
   `networking`, `database`, `iam`) plus `organizations` and `policies`
   are built; `storage` and `networking` are fully applied and verified
@@ -288,6 +298,10 @@ decisions that were later reversed. Full history in [`docs/adr/`](docs/adr/):
 | 0014 | Defer security/shared/staging/production environment directories |
 | 0015 | RDS second-opinion (tfsec) scan triage — backup retention, IAM auth |
 | 0016 | MiniStack RDS modify-in-place does not persist (distinct from the lock-persistence gap in ADR-0006) |
+| 0017 | MiniStack RDS destroy hangs indefinitely — blocks `database` Terratest |
+| 0018 | MiniStack RDS cross-instance ID collision destroyed the real `development` RDS instance during testing |
+| 0019 | Makefile did not exclude the unsafe `database` test by default — compiler-enforced build-tag exclusion added |
+| 0020 | Mandatory resource tagging drift found via OPA — 11 resources missing `Owner`/`ManagedBy` |
 
 ---
 
