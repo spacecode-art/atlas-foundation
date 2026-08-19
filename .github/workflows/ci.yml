@@ -11,6 +11,9 @@ on:
 jobs:
   secrets-scan:
     name: Secrets Scan
+    permissions:
+      contents: read
+      pull-requests: write   # required by the nested gitleaks job — see atlas-security reusable-secrets-scan.yml
     uses: spacecode-art/atlas-security/.github/workflows/reusable-secrets-scan.yml@main
     with:
       fail-on-findings: true
