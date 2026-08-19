@@ -22,3 +22,8 @@ variable "private_subnet_cidrs" {
   type    = list(string)
   default = ["10.99.101.0/24", "10.99.102.0/24"]
 }
+
+variable "owner" {
+  type    = string
+  default = "terratest"
+}

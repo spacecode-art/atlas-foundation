@@ -78,6 +78,43 @@ jobs:
           path: terraform/environments/development/plan.json
           retention-days: 1
 
+  terratest:
+    name: Terratest (storage, networking, iam, organizations)
+    runs-on: ubuntu-latest
+
+    services:
+      ministack:
+        image: ministackorg/ministack
+        ports:
+          - 4566:4566
+        options: >-
+          --health-cmd "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:4566/_ministack/health')\""
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.11.0"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+          cache-dependency-path: tests/terratest/go.sum
+
+      - name: Run Terratest
+        # No build tags — this deliberately excludes the database
+        # suite, which requires the ministack_unsafe_rds tag and is
+        # opt-in only (make test-database-unsafe), never CI (ADR-0019).
+        working-directory: tests/terratest
+        run: go test -v -timeout 15m
+
   security-scan:
     name: Security Scan
     uses: spacecode-art/atlas-security/.github/workflows/reusable-iac-scan.yml@main

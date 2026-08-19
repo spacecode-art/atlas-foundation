@@ -260,15 +260,16 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
   `organizations`/`iam`/`policies` are `plan`-validated only
   (account-and-org-level AWS resources cannot be created by any local
   emulator — ADRs 0007–0009)
-- **Testing** — Terratest (`make test`) applies the `storage` module
-  against an isolated fixture and asserts the result via a real API call
+- **Testing** — Terratest (`make test`) covers `storage`, `networking`,
+  `iam` (plan-only), and `organizations` (plan-only), now run on every
+  push/PR via CI's `terratest` job against an ephemeral MiniStack
+  container — previously local-only, so CI's green checkmark had never
+  actually exercised any module until this job was added
 - **Security** — Checkov and Gitleaks both run in CI on every push,
   via `atlas-security`'s reusable workflows; all Checkov findings are
   either fixed or explicitly deferred with a cited ADR (0010, 0013)
 
 **Remaining, tracked honestly:**
-- Automated test coverage for `organizations` (only module left
-  without any Terratest, plan-only or otherwise)
 - `database` Terratest remains excluded pending a MiniStack RDS fix
   (ADR-0017, ADR-0018) — this is a tooling defect, not untested code
 - `security`, `shared`, `staging`, `production` environments (ADR-0014)
