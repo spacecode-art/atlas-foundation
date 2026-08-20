@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +25,17 @@ func TestNetworkingModuleCreatesCorrectSubnetSplit(t *testing.T) {
 	publicSubnetIDs := terraform.OutputList(t, terraformOptions, "public_subnet_ids")
 	privateSubnetIDs := terraform.OutputList(t, terraformOptions, "private_subnet_ids")
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+	// MiniStack doesn't validate credentials — Terraform's provider block
+	// gets away with skip_credentials_validation + fake "test"/"test"
+	// keys. The Go SDK has no equivalent skip flag, so without an
+	// explicit static provider here it falls through the full default
+	// credential chain and dies trying to reach EC2 IMDS, which doesn't
+	// exist on a GitHub Actions runner.
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithRegion("us-east-1"),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")),
+	)
 	require.NoError(t, err)
 
 	client := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
