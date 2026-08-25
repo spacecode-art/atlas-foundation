@@ -3,6 +3,9 @@
 ## Status
 Accepted
 
+## Date
+2026-08-12
+
 ## Context
 Atlas Security's Phase 2 build added an OPA/Conftest policy
 (`policies/opa/tagging.rego`) requiring every taggable AWS resource to
