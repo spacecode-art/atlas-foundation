@@ -81,8 +81,10 @@ GitHub itself as a platform).
   (ADR-0014) — this threat model will need revisiting once they do,
   since production will carry materially different risk (real user data,
   real traffic) than the dev/management environments modeled here.
-- No automated secrets-scanning (Gitleaks) is wired into CI yet — planned
-  for `atlas-security` (Phase 2), not duplicated here.
+- Automated secrets-scanning (Gitleaks) runs as the `secrets-scan` job on
+  every push/PR to `main`, via `atlas-security`'s reusable
+  `reusable-secrets-scan.yml` workflow (`fail-on-findings: true`). Owned
+  and maintained in `atlas-security`, invoked here.
 - Enhanced monitoring / Performance Insights on RDS are deferred
   (ADR-0013) — reduced visibility into anomalous database access
   patterns until that's revisited.
