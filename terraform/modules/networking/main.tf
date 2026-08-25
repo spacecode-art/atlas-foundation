@@ -41,7 +41,10 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = var.availability_zones[count.index]
-  map_public_ip_on_launch = true
+  # Intentional public-subnet behavior for internet-facing entry points.
+  # The private subnet tier remains non-public. This exception is aligned
+  # with Checkov CKV_AWS_130 and the decision recorded in ADR-0010.
+  map_public_ip_on_launch = true # nosemgrep: terraform.aws.security.aws-subnet-has-public-ip-address.aws-subnet-has-public-ip-address
 
   tags = merge(local.common_tags, {
     Name = "atlas-${var.environment}-public-${count.index}"
@@ -79,3 +82,4 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
+
