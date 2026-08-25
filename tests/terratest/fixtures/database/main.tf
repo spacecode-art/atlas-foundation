@@ -31,6 +31,7 @@ module "network" {
   availability_zones     = ["us-east-1a", "us-east-1b"]
   public_subnet_cidrs    = ["10.98.1.0/24", "10.98.2.0/24"]
   private_subnet_cidrs   = ["10.98.101.0/24", "10.98.102.0/24"]
+  owner                  = "terratest"
 }
 
 module "database" {
@@ -40,4 +41,5 @@ module "database" {
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
   db_name            = "terratestdb"
+  owner              = "terratest"
 }
