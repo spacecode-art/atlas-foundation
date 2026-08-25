@@ -151,4 +151,10 @@ jobs:
       config: p/terraform
       # fail-on-findings intentionally false — soft rollout, see
       # atlas-security ADR-0003. Revisit once a baseline is established.
-      fail-on-findings: false 
+      fail-on-findings: false
+
+  trivy-scan:
+    name: Trivy Scan (third opinion)
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-trivy-scan.yml@main
+    with:
+      directory: terraform/ 
