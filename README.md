@@ -333,7 +333,7 @@ cited ADR (0010, 0011, 0013), none are unreviewed. Full results:
 
 ## Testing Strategy
 
-Terratest ([`tests/terratest/`](tests/terratest/)) covers three
+Terratest ([`tests/terratest/`](tests/terratest/)) covers four
 modules, each using a dedicated isolated fixture — a root module
 pinning an explicit MiniStack-only provider so no test can silently
 fall back to real AWS credentials:
@@ -348,6 +348,10 @@ fall back to real AWS credentials:
   and actions appear in the Terraform plan JSON. Consistent with
   ADR-0008: no AWS account, real or emulated, supports creating an
   Identity Center instance via Terraform.
+- **`organizations`** — plan-only, same rationale as `iam` (ADR-0007):
+  asserts the Organization, an OU, and an account all appear as
+  `create` actions in the plan JSON, keyed correctly through their
+  `for_each` maps.
 
 **`database` module coverage is intentionally absent**, not merely
 unwritten. A Terratest fixture was built and run; it surfaced two real
@@ -427,9 +431,6 @@ that allowed the fallback.
 
 ## Future Roadmap
 
-- Terratest coverage for `organizations` (plan-only, same pattern as
-  `iam` — no AWS account, real or emulated, creates an Organization
-  via Terraform)
 - Resolve the MiniStack defects blocking `database` Terratest
   (ADR-0017, ADR-0018), or replace MiniStack's RDS emulation
 - Build out `security`, `shared`, `staging`, `production` environments
