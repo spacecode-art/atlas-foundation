@@ -206,7 +206,7 @@ make check
 
 ## CI/CD
 
-Six jobs run on every push and PR to `main`, defined in
+Seven jobs run on every push and PR to `main`, defined in
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). Four of them
 call reusable workflows owned by [`atlas-security`](https://github.com/spacecode-art/atlas-security)
 rather than duplicating scan logic inline — see that repo for the
@@ -238,6 +238,11 @@ per-repo skip-list drift).
    during baseline rollout (see `atlas-security` ADR-0003 for
    graduation criteria to hard-fail).
 
+7. **`trivy-scan`** — calls `atlas-security`'s reusable Trivy workflow
+   (third-opinion IaC scan, `continue-on-error: true`) against the full
+   `terraform/` tree. Non-blocking by design; see `atlas-security`
+   ADR-0004.
+
 ---
 
 ## Current Status
@@ -247,12 +252,12 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
 - **Governance** — README, LICENSE, CONTRIBUTING, CHANGELOG, 14 ADRs
 - **State management** — remote S3 state with native S3 locking
   (ADR-0012), encrypted, versioned, public-access-blocked
-- **CI/CD** — six-job pipeline: Gitleaks secrets scan, Checkov/tfsec
-  IaC scan, OPA/Conftest tagging policy scan, and Semgrep SAST all
-  consumed as reusable workflows from `atlas-security` (proving that
-  repo's platform claim on a real consumer), plus repo validation and
-  `terraform plan` against ephemeral MiniStack. OPA has already caught
-  one real finding in production use (ADR-0020).
+- **CI/CD** — seven-job pipeline: Gitleaks secrets scan, Checkov/tfsec/
+  Trivy IaC scan, OPA/Conftest tagging policy scan, and Semgrep SAST
+  all consumed as reusable workflows from `atlas-security` (proving
+  that repo's platform claim on a real consumer), plus repo validation
+  and `terraform plan` against ephemeral MiniStack. OPA has already
+  caught one real finding in production use (ADR-0020).
 - **Reusable modules** — all four required modules (`storage`,
   `networking`, `database`, `iam`) plus `organizations` and `policies`
   are built; `storage` and `networking` are fully applied and verified
@@ -435,8 +440,6 @@ that allowed the fallback.
   (ADR-0017, ADR-0018), or replace MiniStack's RDS emulation
 - Build out `security`, `shared`, `staging`, `production` environments
   (ADR-0014)
-- Phase 2 (`atlas-security`): OPA/Conftest, Semgrep, Trivy, Gitleaks,
-  Cosign/Syft SBOM signing — see the Atlas execution plan
 
 ---
 ## Demo Video
