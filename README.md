@@ -325,14 +325,18 @@ Terraform state, and every infrastructure change is reviewed as a
 ## Security Review
 
 Checkov runs against the full Terraform tree on every push, hard-
-failing on unreviewed findings. As of 2026-08-10: **Checkov 45 passed,
-0 failed**; **tfsec (second-opinion scan, run manually) 38 passed, 16
-findings (6 high, 8 medium, 2 low)** — every one of the 16 traces to a
-cited ADR (0010, 0011, 0013), none are unreviewed. Full results:
+failing on unreviewed findings. As of 2026-08-26: **Checkov 45 passed
+(static) / 33 passed (plan-based), 0 failed** — a real open-egress gap
+on the `development` default security group was found via the
+plan-based scan and fixed, not just suppressed (ADR-0021); **tfsec
+(second-opinion scan, run manually) 38 passed, 16 findings (6 high, 8
+medium, 2 low)** — every one of the 16 traces to a cited ADR (0010,
+0011, 0013), none are unreviewed. Full results:
 [`docs/evidence/security-scans/`](docs/evidence/security-scans/),
 [ADR-0010](docs/adr/ADR-0010-security-scan-triage.md),
-[ADR-0013](docs/adr/ADR-0013-rds-security-scan-triage.md), and
-[ADR-0015](docs/adr/ADR-0015-rds-second-scan-triage.md).
+[ADR-0013](docs/adr/ADR-0013-rds-security-scan-triage.md),
+[ADR-0015](docs/adr/ADR-0015-rds-second-scan-triage.md), and
+[ADR-0021](docs/adr/ADR-0021-checkov-plan-scan-default-sg-false-positive.md).
 
 ---
 
