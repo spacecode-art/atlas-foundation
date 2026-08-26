@@ -1,352 +1,256 @@
+                                                                                                                                                                                                   
+┌──(prime㉿kali)-[~/Desktop/workspace/atlas-foundation]
+└─$ cd ~/Desktop/workspace/atlas-foundation
+
+docker run --rm -v "$(pwd)/terraform:/tf" aquasec/tfsec /tf 2>&1 | tee /tmp/tfsec-output.txt
+
+======================================================
+tfsec is joining the Trivy family
+
+tfsec will continue to remain available 
+for the time being, although our engineering 
+attention will be directed at Trivy going forward.
+
+You can read more here: 
+https://github.com/aquasecurity/tfsec/discussions/1994
+======================================================
+
+Result #1 HIGH Bucket does not encrypt data with a customer managed key. 
+────────────────────────────────────────────────────────────────────────────────
+  bootstrap/backend/main.tf:24-32
+────────────────────────────────────────────────────────────────────────────────
+   24    resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
+   25      bucket = aws_s3_bucket.terraform_state.id
+   26    
+   27      rule {
+   28        apply_server_side_encryption_by_default {
+   29          sse_algorithm = "AES256"
+   30        }
+   31      }
+   32    }
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-s3-encryption-customer-key
+      Impact Using AWS managed keys does not allow for fine grained control
+  Resolution Enable encryption using customer managed keys
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/encryption-customer-key/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption
+────────────────────────────────────────────────────────────────────────────────
 
 
-       _               _
-   ___| |__   ___  ___| | _______   __
-  / __| '_ \ / _ \/ __| |/ / _ \ \ / /
- | (__| | | |  __/ (__|   < (_) \ V /
-  \___|_| |_|\___|\___|_|\_\___/ \_/
+Results #2-4 HIGH Subnet associates public IP address. (3 similar results)
+────────────────────────────────────────────────────────────────────────────────
+  modules/networking/main.tf:55
+   via environments/development/main.tf:10-19 (module.network)
+────────────────────────────────────────────────────────────────────────────────
+   47    resource "aws_subnet" "public" {
+   ..  
+   55  [   map_public_ip_on_launch = true # nosemgrep: terraform.aws.security.aws-subnet-has-public-ip-address.aws-subnet-has-public-ip-address (true)
+   ..  
+   61    }
+────────────────────────────────────────────────────────────────────────────────
+  Individual Causes
+  - modules/networking/main.tf:10-19 (module.network)
+  - modules/networking/main.tf:10-19 (module.network)
+  - modules/networking/main.tf:47-61 (aws_subnet.public[0])
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-ec2-no-public-ip-subnet
+      Impact The instance is publicly accessible
+  Resolution Set the instance to not be publicly accessible
 
-By Prisma Cloud | version: 3.3.9 
-Update available 3.3.9 -> 3.3.13
-Run pip3 install -U checkov to update 
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-ip-subnet/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#map_public_ip_on_launch
+────────────────────────────────────────────────────────────────────────────────
 
 
-terraform scan results:
+Results #5-6 HIGH Bucket does not encrypt data with a customer managed key. (2 similar results)
+────────────────────────────────────────────────────────────────────────────────
+  modules/storage/main.tf:33-41
+────────────────────────────────────────────────────────────────────────────────
+   33    resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+   34      bucket = aws_s3_bucket.this.id
+   35    
+   36      rule {
+   37        apply_server_side_encryption_by_default {
+   38          sse_algorithm = "AES256"
+   39        }
+   40      }
+   41    }
+────────────────────────────────────────────────────────────────────────────────
+  Individual Causes
+  - modules/storage/main.tf:33-41 (aws_s3_bucket_server_side_encryption_configuration.this)
+  - modules/storage/main.tf:1-8 (module.app_storage)
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-s3-encryption-customer-key
+      Impact Using AWS managed keys does not allow for fine grained control
+  Resolution Enable encryption using customer managed keys
 
-Passed checks: 45, Failed checks: 0, Skipped checks: 0
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/encryption-customer-key/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption
+────────────────────────────────────────────────────────────────────────────────
 
-Check: CKV_AWS_93: "Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)"
-	PASSED for resource: aws_s3_bucket.terraform_state
-	File: /bootstrap/backend/main.tf:1-3
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-24
-Check: CKV_AWS_55: "Ensure S3 bucket has ignore public ACLs enabled"
-	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
-	File: /bootstrap/backend/main.tf:15-22
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-21
-Check: CKV_AWS_56: "Ensure S3 bucket has 'restrict_public_buckets' enabled"
-	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
-	File: /bootstrap/backend/main.tf:15-22
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-22
-Check: CKV_AWS_54: "Ensure S3 bucket has block public policy enabled"
-	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
-	File: /bootstrap/backend/main.tf:15-22
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-20
-Check: CKV_AWS_53: "Ensure S3 bucket has block public ACLS enabled"
-	PASSED for resource: aws_s3_bucket_public_access_block.terraform_state
-	File: /bootstrap/backend/main.tf:15-22
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-19
-Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
-	PASSED for resource: aws.default
-	File: /bootstrap/backend/providers.tf:1-16
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
-Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
-	PASSED for resource: aws.default
-	File: /environments/development/providers.tf:1-22
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
-Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
-	PASSED for resource: aws.default
-	File: /environments/management/providers.tf:1-17
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
-Check: CKV_AWS_260: "Ensure no security groups allow ingress from 0.0.0.0:0 to port 80"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-security-groups-do-not-allow-ingress-from-00000-to-port-80
-Check: CKV_AWS_277: "Ensure no security groups allow ingress from 0.0.0.0:0 to port -1"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-security-group-does-not-allow-all-traffic-on-all-ports
-Check: CKV_AWS_382: "Ensure no security groups allow egress from 0.0.0.0:0 to port -1"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-382
-Check: CKV_AWS_24: "Ensure no security groups allow ingress from 0.0.0.0:0 to port 22"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-1-port-security
-Check: CKV_AWS_25: "Ensure no security groups allow ingress from 0.0.0.0:0 to port 3389"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-2
-Check: CKV_AWS_23: "Ensure every security group and rule has a description"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-31
-Check: CKV_AWS_388: "Ensure AWS Aurora PostgreSQL is not exposed to local file read vulnerability"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-Check: CKV_AWS_133: "Ensure that RDS instances has backup policy"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-rds-instances-have-backup-policy
-Check: CKV_AWS_16: "Ensure all data stored in the RDS is securely encrypted at rest"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-4
-Check: CKV_AWS_129: "Ensure that respective logs of Amazon Relational Database Service (Amazon RDS) are enabled"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-that-respective-logs-of-amazon-relational-database-service-amazon-rds-are-enabled
-Check: CKV_AWS_354: "Ensure RDS Performance Insights are encrypted using KMS CMKs"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-354
-Check: CKV_AWS_226: "Ensure DB instance gets all minor upgrades automatically"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-aws-db-instance-gets-all-minor-upgrades-automatically
-Check: CKV_AWS_17: "Ensure all data stored in RDS is not publicly accessible"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/public-policies/public-2
-Check: CKV_AWS_211: "Ensure RDS uses a modern CaCert"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Calling File: /environments/development/main.tf:23-31
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-aws-rds-uses-a-modern-cacert
-Check: CKV_AWS_274: "Disallow IAM roles, users, and groups from using the AWS AdministratorAccess policy"
-	PASSED for resource: module.iam.aws_ssoadmin_managed_policy_attachment.this
-	File: /modules/iam/main.tf:9-25
-	Calling File: /environments/management/main.tf:35-56
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-274
-Check: CKV_AWS_93: "Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /modules/storage/main.tf:9-13
-	Calling File: /environments/development/main.tf:1-8
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-24
-Check: CKV_AWS_55: "Ensure S3 bucket has ignore public ACLs enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /modules/storage/main.tf:24-31
-	Calling File: /environments/development/main.tf:1-8
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-21
-Check: CKV_AWS_56: "Ensure S3 bucket has 'restrict_public_buckets' enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /modules/storage/main.tf:24-31
-	Calling File: /environments/development/main.tf:1-8
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-22
-Check: CKV_AWS_54: "Ensure S3 bucket has block public policy enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /modules/storage/main.tf:24-31
-	Calling File: /environments/development/main.tf:1-8
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-20
-Check: CKV_AWS_53: "Ensure S3 bucket has block public ACLS enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /modules/storage/main.tf:24-31
-	Calling File: /environments/development/main.tf:1-8
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-19
-Check: CKV2_AWS_44: "Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic"
-	PASSED for resource: module.network.aws_route_table.public
-	File: /modules/networking/main.tf:64-75
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-route-table-with-vpc-peering-does-not-contain-routes-overly-permissive-to-all-traffic
-Check: CKV2_AWS_69: "Ensure AWS RDS database instance configured with encryption in transit"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-2-69
-Check: CKV2_AWS_56: "Ensure AWS Managed IAMFullAccess IAM policy is not used."
-	PASSED for resource: module.iam.aws_ssoadmin_managed_policy_attachment.this
-	File: /modules/iam/main.tf:9-25
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-2-56
-Check: CKV2_AWS_5: "Ensure that Security Groups are attached to another resource"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /modules/database/main.tf:18-26
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-that-security-groups-are-attached-to-ec2-instances-or-elastic-network-interfaces-enis
-Check: CKV2_AWS_35: "AWS NAT Gateways should be utilized for the default route"
-	PASSED for resource: module.network.aws_route_table.public
-	File: /modules/networking/main.tf:64-75
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-nat-gateways-are-utilized-for-the-default-route
-Check: CKV2_AWS_60: "Ensure RDS instance with copy tags to snapshots is enabled"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /modules/database/main.tf:41-70
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-60
-Check: CKV_AWS_20: "S3 Bucket has an ACL defined which allows public READ access."
-	PASSED for resource: aws_s3_bucket.terraform_state
-	File: /bootstrap/backend/main.tf:1-3
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-1-acl-read-permissions-everyone
-Check: CKV_AWS_20: "S3 Bucket has an ACL defined which allows public READ access."
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /modules/storage/main.tf:9-13
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-1-acl-read-permissions-everyone
-Check: CKV_AWS_21: "Ensure all data stored in the S3 bucket have versioning enabled"
-	PASSED for resource: aws_s3_bucket.terraform_state
-	File: /bootstrap/backend/main.tf:1-3
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-16-enable-versioning
-Check: CKV_AWS_21: "Ensure all data stored in the S3 bucket have versioning enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /modules/storage/main.tf:9-13
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-16-enable-versioning
-Check: CKV2_AWS_6: "Ensure that S3 bucket has a Public Access block"
-	PASSED for resource: aws_s3_bucket.terraform_state
-	File: /bootstrap/backend/main.tf:1-3
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached
-Check: CKV2_AWS_6: "Ensure that S3 bucket has a Public Access block"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /modules/storage/main.tf:9-13
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached
-Check: CKV_AWS_57: "S3 Bucket has an ACL defined which allows public WRITE access."
-	PASSED for resource: aws_s3_bucket.terraform_state
-	File: /bootstrap/backend/main.tf:1-3
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-2-acl-write-permissions-everyone
-Check: CKV_AWS_57: "S3 Bucket has an ACL defined which allows public WRITE access."
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /modules/storage/main.tf:9-13
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-2-acl-write-permissions-everyone
-Check: CKV2_AWS_12: "Ensure the default security group of every VPC restricts all traffic"
-	PASSED for resource: module.network.aws_vpc.this
-	File: /modules/networking/main.tf:9-17
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-4
-Check: CKV_AWS_19: "Ensure all data stored in the S3 bucket is securely encrypted at rest"
-	PASSED for resource: aws_s3_bucket.terraform_state
-	File: /bootstrap/backend/main.tf:1-3
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-14-data-encrypted-at-rest
-Check: CKV_AWS_19: "Ensure all data stored in the S3 bucket is securely encrypted at rest"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /modules/storage/main.tf:9-13
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-14-data-encrypted-at-rest
-terraform_plan scan results:
 
-Passed checks: 32, Failed checks: 1, Skipped checks: 0
+Result #7 MEDIUM Bucket does not have logging enabled 
+────────────────────────────────────────────────────────────────────────────────
+  bootstrap/backend/main.tf:1-3
+────────────────────────────────────────────────────────────────────────────────
+    1    resource "aws_s3_bucket" "terraform_state" {
+    2      bucket = "atlas-terraform-state"
+    3    }
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-s3-enable-bucket-logging
+      Impact There is no way to determine the access to this bucket
+  Resolution Add a logging block to the resource to enable access logging
 
-Check: CKV_AWS_41: "Ensure no hard coded AWS access key and secret key exists in provider"
-	PASSED for resource: aws.default
-	File: /environments/development/plan.json:0-1
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/secrets-policies/bc-aws-secrets-5
-Check: CKV_AWS_93: "Ensure S3 bucket policy does not lockout all but root user. (Prevent lockouts needing root account fixes)"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-24
-Check: CKV_AWS_55: "Ensure S3 bucket has ignore public ACLs enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-21
-Check: CKV_AWS_56: "Ensure S3 bucket has 'restrict_public_buckets' enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-22
-Check: CKV_AWS_54: "Ensure S3 bucket has block public policy enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-20
-Check: CKV_AWS_53: "Ensure S3 bucket has block public ACLS enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket_public_access_block.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/bc-aws-s3-19
-Check: CKV_AWS_388: "Ensure AWS Aurora PostgreSQL is not exposed to local file read vulnerability"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-Check: CKV_AWS_250: "Ensure that RDS PostgreSQL instances use a non vulnerable version with the log_fdw extension (https://aws.amazon.com/security/security-bulletins/AWS-2022-004/)"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-aws-rds-postgresql-instances-use-a-non-vulnerable-version-of-log-fdw-extension
-Check: CKV_AWS_133: "Ensure that RDS instances has backup policy"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-rds-instances-have-backup-policy
-Check: CKV_AWS_16: "Ensure all data stored in the RDS is securely encrypted at rest"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-4
-Check: CKV_AWS_161: "Ensure RDS database has IAM authentication enabled"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-rds-database-has-iam-authentication-enabled
-Check: CKV_AWS_129: "Ensure that respective logs of Amazon Relational Database Service (Amazon RDS) are enabled"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-that-respective-logs-of-amazon-relational-database-service-amazon-rds-are-enabled
-Check: CKV_AWS_354: "Ensure RDS Performance Insights are encrypted using KMS CMKs"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-354
-Check: CKV_AWS_226: "Ensure DB instance gets all minor upgrades automatically"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-aws-db-instance-gets-all-minor-upgrades-automatically
-Check: CKV_AWS_17: "Ensure all data stored in RDS is not publicly accessible"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/public-policies/public-2
-Check: CKV_AWS_211: "Ensure RDS uses a modern CaCert"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-aws-rds-uses-a-modern-cacert
-Check: CKV_AWS_260: "Ensure no security groups allow ingress from 0.0.0.0:0 to port 80"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-security-groups-do-not-allow-ingress-from-00000-to-port-80
-Check: CKV_AWS_277: "Ensure no security groups allow ingress from 0.0.0.0:0 to port -1"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-security-group-does-not-allow-all-traffic-on-all-ports
-Check: CKV_AWS_382: "Ensure no security groups allow egress from 0.0.0.0:0 to port -1"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-382
-Check: CKV_AWS_24: "Ensure no security groups allow ingress from 0.0.0.0:0 to port 22"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-1-port-security
-Check: CKV_AWS_25: "Ensure no security groups allow ingress from 0.0.0.0:0 to port 3389"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-2
-Check: CKV_AWS_23: "Ensure every security group and rule has a description"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-31
-Check: CKV2_AWS_44: "Ensure AWS route table with VPC peering does not contain routes overly permissive to all traffic"
-	PASSED for resource: module.network.aws_route_table.public
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-route-table-with-vpc-peering-does-not-contain-routes-overly-permissive-to-all-traffic
-Check: CKV2_AWS_69: "Ensure AWS RDS database instance configured with encryption in transit"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-2-69
-Check: CKV2_AWS_5: "Ensure that Security Groups are attached to another resource"
-	PASSED for resource: module.database.aws_security_group.db
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-that-security-groups-are-attached-to-ec2-instances-or-elastic-network-interfaces-enis
-Check: CKV2_AWS_35: "AWS NAT Gateways should be utilized for the default route"
-	PASSED for resource: module.network.aws_route_table.public
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-aws-nat-gateways-are-utilized-for-the-default-route
-Check: CKV2_AWS_60: "Ensure RDS instance with copy tags to snapshots is enabled"
-	PASSED for resource: module.database.aws_db_instance.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-2-60
-Check: CKV_AWS_20: "S3 Bucket has an ACL defined which allows public READ access."
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-1-acl-read-permissions-everyone
-Check: CKV_AWS_57: "S3 Bucket has an ACL defined which allows public WRITE access."
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-2-acl-write-permissions-everyone
-Check: CKV_AWS_21: "Ensure all data stored in the S3 bucket have versioning enabled"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-16-enable-versioning
-Check: CKV2_AWS_6: "Ensure that S3 bucket has a Public Access block"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached
-Check: CKV_AWS_19: "Ensure all data stored in the S3 bucket is securely encrypted at rest"
-	PASSED for resource: module.app_storage.aws_s3_bucket.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-14-data-encrypted-at-rest
-Check: CKV2_AWS_12: "Ensure the default security group of every VPC restricts all traffic"
-	FAILED for resource: module.network.aws_vpc.this
-	File: /environments/development/plan.json:0-0
-	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/networking-4
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-bucket-logging/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
+────────────────────────────────────────────────────────────────────────────────
 
+
+Results #8-9 MEDIUM Instance does not have Deletion Protection enabled (2 similar results)
+────────────────────────────────────────────────────────────────────────────────
+  modules/database/main.tf:59
+────────────────────────────────────────────────────────────────────────────────
+   59      deletion_protection          = var.deletion_protection
+────────────────────────────────────────────────────────────────────────────────
+  Individual Causes
+  - modules/database/main.tf:59 (aws_db_instance.this.deletion_protection)
+  - modules/database/main.tf:59 (aws_db_instance.this.deletion_protection)
+────────────────────────────────────────────────────────────────────────────────
+  Rego Package builtin.aws.rds.aws0177
+     Rego Rule deny
+────────────────────────────────────────────────────────────────────────────────
+
+
+Results #10-11 MEDIUM VPC Flow Logs is not enabled for VPC  (2 similar results)
+────────────────────────────────────────────────────────────────────────────────
+  modules/networking/main.tf:9-17
+   via environments/development/main.tf:10-19 (module.network)
+────────────────────────────────────────────────────────────────────────────────
+    9    resource "aws_vpc" "this" {
+   10      cidr_block           = var.vpc_cidr
+   11      enable_dns_support   = true
+   12      enable_dns_hostnames = true
+   13    
+   14      tags = merge(local.common_tags, {
+   15        Name = "atlas-${var.environment}-vpc"
+   16      })
+   17    }
+────────────────────────────────────────────────────────────────────────────────
+  Individual Causes
+  - modules/networking/main.tf:10-19 (module.network)
+  - modules/networking/main.tf:9-17 (aws_vpc.this)
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-ec2-require-vpc-flow-logs-for-all-vpcs
+      Impact Without VPC flow logs, you risk not having enough information about network traffic flow to investigate incidents or identify security issues.
+  Resolution Enable flow logs for VPC
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/require-vpc-flow-logs-for-all-vpcs/
+────────────────────────────────────────────────────────────────────────────────
+
+
+Results #12-13 MEDIUM Bucket does not have logging enabled (2 similar results)
+────────────────────────────────────────────────────────────────────────────────
+  modules/storage/main.tf:9-13
+   via environments/development/main.tf:1-8 (module.app_storage)
+────────────────────────────────────────────────────────────────────────────────
+    9    resource "aws_s3_bucket" "this" {
+   10      bucket = var.bucket_name
+   11    
+   12      tags = local.common_tags
+   13    }
+────────────────────────────────────────────────────────────────────────────────
+  Individual Causes
+  - modules/storage/main.tf:1-8 (module.app_storage)
+  - modules/storage/main.tf:9-13 (aws_s3_bucket.this)
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-s3-enable-bucket-logging
+      Impact There is no way to determine the access to this bucket
+  Resolution Add a logging block to the resource to enable access logging
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-bucket-logging/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
+────────────────────────────────────────────────────────────────────────────────
+
+
+Result #14 MEDIUM Bucket does not have versioning enabled 
+────────────────────────────────────────────────────────────────────────────────
+  modules/storage/main.tf:9-13
+────────────────────────────────────────────────────────────────────────────────
+    9    resource "aws_s3_bucket" "this" {
+   10      bucket = var.bucket_name
+   11    
+   12      tags = local.common_tags
+   13    }
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-s3-enable-versioning
+      Impact Deleted or modified data would not be recoverable
+  Resolution Enable versioning to protect against accidental/malicious removal or modification
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-versioning/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#versioning
+────────────────────────────────────────────────────────────────────────────────
+
+
+Results #15-16 LOW Instance does not have performance insights enabled. (2 similar results)
+────────────────────────────────────────────────────────────────────────────────
+  modules/database/main.tf:41-70
+────────────────────────────────────────────────────────────────────────────────
+   41  ┌ resource "aws_db_instance" "this" {
+   42  │   identifier     = "atlas-${var.environment}-db"
+   43  │   engine         = var.engine
+   44  │   engine_version = var.engine_version
+   45  │   instance_class = var.instance_class
+   46  │ 
+   47  │   allocated_storage     = var.allocated_storage
+   48  │   storage_encrypted     = true
+   49  └ 
+   ..  
+────────────────────────────────────────────────────────────────────────────────
+  Individual Causes
+  - modules/database/main.tf:41-70 (aws_db_instance.this)
+  - modules/database/main.tf:23-31 (module.database)
+────────────────────────────────────────────────────────────────────────────────
+          ID aws-rds-enable-performance-insights
+      Impact Without adequate monitoring, performance related issues may go unreported and potentially lead to compromise.
+  Resolution Enable performance insights
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/rds/enable-performance-insights/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/rds_cluster_instance#performance_insights_kms_key_id
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#performance_insights_kms_key_id
+────────────────────────────────────────────────────────────────────────────────
+
+
+  timings
+  ──────────────────────────────────────────
+  disk i/o             418.043µs
+  parsing              34.728787ms
+  adaptation           21.828946ms
+  checks               48.354426ms
+  total                105.330202ms
+
+  counts
+  ──────────────────────────────────────────
+  modules downloaded   0
+  modules processed    15
+  blocks processed     160
+  files read           45
+
+  results
+  ──────────────────────────────────────────
+  passed               38
+  ignored              0
+  critical             0
+  high                 6
+  medium               8
+  low                  2
+
+  38 passed, 16 potential problem(s) detected.

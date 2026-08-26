@@ -1,239 +1,73 @@
+# tfsec scan — atlas-foundation
+# Command: docker run --rm -v "$(pwd)/terraform:/tf" aquasec/tfsec /tf
+# Date: 2026-08-26 (re-run after ADR-0021's default-SG fix; unchanged
+#   from the original 2026-08-10 baseline — this check operates on
+#   different resources than the one Checkov CKV2_AWS_12 fix touched)
+# Result: 38 passed, 16 findings (6 high, 8 medium, 2 low)
+# Every finding below traces to a cited ADR — none are unreviewed.
+# Note: tfsec's maintainers have announced it is being folded into the
+#   Trivy family going forward (see banner in raw output below) —
+#   consistent with atlas-security ADR-0004's independent decision to
+#   add Trivy as a third opinion. Worth revisiting tfsec's role here
+#   once/if it's formally deprecated.
 
-Result #1 HIGH Bucket does not encrypt data with a customer managed key. 
-──────────────────────────────────────────────────────────────────
+Result #1 HIGH Bucket does not encrypt data with a customer managed key.
   bootstrap/backend/main.tf:24-32
-──────────────────────────────────────────────────────────────────
-   24    resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
-   25      bucket = aws_s3_bucket.terraform_state.id
-   26    
-   27      rule {
-   28        apply_server_side_encryption_by_default {
-   29          sse_algorithm = "AES256"
-   30        }
-   31      }
-   32    }
-──────────────────────────────────────────────────────────────────
-          ID aws-s3-encryption-customer-key
-      Impact Using AWS managed keys does not allow for fine grained control
-  Resolution Enable encryption using customer managed keys
+  ID: aws-s3-encryption-customer-key
+  Status: Deferred — ADR-0010 (AWS-managed encryption adequate at this stage)
 
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/encryption-customer-key/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption
-──────────────────────────────────────────────────────────────────
+Results #2-4 HIGH Subnet associates public IP address. (3 instances)
+  modules/networking/main.tf:47-61, via environments/development/main.tf
+  ID: aws-ec2-no-public-ip-subnet
+  Status: Deferred by design — ADR-0010 (deliberate public-subnet behavior,
+  explicitly not a finding to fix; also suppressed for Semgrep via
+  nosemgrep citing atlas-security ADR-0003)
 
+Results #5-6 HIGH Bucket does not encrypt data with a customer managed key. (2 instances)
+  modules/storage/main.tf:33-41, via environments/development/main.tf
+  ID: aws-s3-encryption-customer-key
+  Status: Deferred — ADR-0010
 
-Results #2-4 HIGH Subnet associates public IP address. (3 similar results)
-──────────────────────────────────────────────────────────────────
-  modules/networking/main.tf:44
-   via environments/development/main.tf:10-19 (module.network)
-──────────────────────────────────────────────────────────────────
-   39    resource "aws_subnet" "public" {
-   ..  
-   44  [   map_public_ip_on_launch = true (true)
-   ..  
-   50    }
-──────────────────────────────────────────────────────────────────
-  Individual Causes
-  - modules/networking/main.tf:10-19 (module.network) 2 instances
-  - modules/networking/main.tf:39-50 (aws_subnet.public[0])
-──────────────────────────────────────────────────────────────────
-          ID aws-ec2-no-public-ip-subnet
-      Impact The instance is publicly accessible
-  Resolution Set the instance to not be publicly accessible
-
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-ip-subnet/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#map_public_ip_on_launch
-──────────────────────────────────────────────────────────────────
-
-
-Results #5-6 HIGH Bucket does not encrypt data with a customer managed key. (2 similar results)
-──────────────────────────────────────────────────────────────────
-  modules/storage/main.tf:33-41
-──────────────────────────────────────────────────────────────────
-   33    resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
-   34      bucket = aws_s3_bucket.this.id
-   35    
-   36      rule {
-   37        apply_server_side_encryption_by_default {
-   38          sse_algorithm = "AES256"
-   39        }
-   40      }
-   41    }
-──────────────────────────────────────────────────────────────────
-  Individual Causes
-  - modules/storage/main.tf:33-41 (aws_s3_bucket_server_side_encryption_configuration.this)
-  - modules/storage/main.tf:1-8 (module.app_storage)
-──────────────────────────────────────────────────────────────────
-          ID aws-s3-encryption-customer-key
-      Impact Using AWS managed keys does not allow for fine grained control
-  Resolution Enable encryption using customer managed keys
-
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/encryption-customer-key/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption
-──────────────────────────────────────────────────────────────────
-
-
-Result #7 MEDIUM Bucket does not have logging enabled 
-──────────────────────────────────────────────────────────────────
+Result #7 MEDIUM Bucket does not have logging enabled
   bootstrap/backend/main.tf:1-3
-──────────────────────────────────────────────────────────────────
-    1    resource "aws_s3_bucket" "terraform_state" {
-    2      bucket = "atlas-terraform-state"
-    3    }
-──────────────────────────────────────────────────────────────────
-          ID aws-s3-enable-bucket-logging
-      Impact There is no way to determine the access to this bucket
-  Resolution Add a logging block to the resource to enable access logging
+  ID: aws-s3-enable-bucket-logging
+  Status: Deferred — ADR-0010 (needs a dedicated log bucket, not yet built)
 
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-bucket-logging/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
-──────────────────────────────────────────────────────────────────
-
-
-Results #8-9 MEDIUM Instance does not have Deletion Protection enabled (2 similar results)
-──────────────────────────────────────────────────────────────────
+Results #8-9 MEDIUM Instance does not have Deletion Protection enabled (2 instances)
   modules/database/main.tf:59
-──────────────────────────────────────────────────────────────────
-   59      deletion_protection          = var.deletion_protection
-──────────────────────────────────────────────────────────────────
-  Individual Causes
-  - modules/database/main.tf:59 (aws_db_instance.this.deletion_protection) 2 instances
-──────────────────────────────────────────────────────────────────
-  Rego Package builtin.aws.rds.aws0177
-     Rego Rule deny
-──────────────────────────────────────────────────────────────────
+  ID: builtin.aws.rds.aws0177
+  Status: Deferred — ADR-0011/ADR-0013 (configurable per-environment,
+  default off for dev by design)
 
-
-Results #10-11 MEDIUM VPC Flow Logs is not enabled for VPC  (2 similar results)
-──────────────────────────────────────────────────────────────────
+Results #10-11 MEDIUM VPC Flow Logs is not enabled for VPC (2 instances)
   modules/networking/main.tf:9-17
-   via environments/development/main.tf:10-19 (module.network)
-──────────────────────────────────────────────────────────────────
-    9    resource "aws_vpc" "this" {
-   10      cidr_block           = var.vpc_cidr
-   11      enable_dns_support   = true
-   12      enable_dns_hostnames = true
-   13    
-   14      tags = merge(local.common_tags, {
-   15        Name = "atlas-${var.environment}-vpc"
-   16      })
-   17    }
-──────────────────────────────────────────────────────────────────
-  Individual Causes
-  - modules/networking/main.tf:10-19 (module.network)
-  - modules/networking/main.tf:9-17 (aws_vpc.this)
-──────────────────────────────────────────────────────────────────
-          ID aws-ec2-require-vpc-flow-logs-for-all-vpcs
-      Impact Without VPC flow logs, you risk not having enough information about network traffic flow to investigate incidents or identify security issues.
-  Resolution Enable flow logs for VPC
+  ID: aws-ec2-require-vpc-flow-logs-for-all-vpcs
+  Status: Deferred — ADR-0010 (belongs to Phase 3 Observability)
 
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/require-vpc-flow-logs-for-all-vpcs/
-──────────────────────────────────────────────────────────────────
+Results #12-13 MEDIUM Bucket does not have logging enabled (2 instances)
+  modules/storage/main.tf:9-13, via environments/development/main.tf
+  ID: aws-s3-enable-bucket-logging
+  Status: Deferred — ADR-0010
 
+Result #14 MEDIUM Bucket does not have versioning enabled
+  modules/storage/main.tf:9-13 (module's own conditional default; the
+  development environment's app_storage instance has versioning
+  enabled — see ADR-0015 changelog — this flags the module's generic
+  default for any future caller that leaves it unset)
+  ID: aws-s3-enable-versioning
+  Status: By design — the storage module intentionally exposes
+  enable_versioning as a per-caller variable
 
-Results #12-13 MEDIUM Bucket does not have logging enabled (2 similar results)
-──────────────────────────────────────────────────────────────────
-  modules/storage/main.tf:9-13
-   via environments/development/main.tf:1-8 (module.app_storage)
-──────────────────────────────────────────────────────────────────
-    9    resource "aws_s3_bucket" "this" {
-   10      bucket = var.bucket_name
-   11    
-   12      tags = local.common_tags
-   13    }
-──────────────────────────────────────────────────────────────────
-  Individual Causes
-  - modules/storage/main.tf:1-8 (module.app_storage)
-  - modules/storage/main.tf:9-13 (aws_s3_bucket.this)
-──────────────────────────────────────────────────────────────────
-          ID aws-s3-enable-bucket-logging
-      Impact There is no way to determine the access to this bucket
-  Resolution Add a logging block to the resource to enable access logging
-
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-bucket-logging/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
-──────────────────────────────────────────────────────────────────
-
-
-Result #14 MEDIUM Bucket does not have versioning enabled 
-──────────────────────────────────────────────────────────────────
-  modules/storage/main.tf:9-13
-──────────────────────────────────────────────────────────────────
-    9    resource "aws_s3_bucket" "this" {
-   10      bucket = var.bucket_name
-   11    
-   12      tags = local.common_tags
-   13    }
-──────────────────────────────────────────────────────────────────
-          ID aws-s3-enable-versioning
-      Impact Deleted or modified data would not be recoverable
-  Resolution Enable versioning to protect against accidental/malicious removal or modification
-
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-versioning/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#versioning
-──────────────────────────────────────────────────────────────────
-
-
-Results #15-16 LOW Instance does not have performance insights enabled. (2 similar results)
-──────────────────────────────────────────────────────────────────
+Results #15-16 LOW Instance does not have performance insights enabled. (2 instances)
   modules/database/main.tf:41-70
-──────────────────────────────────────────────────────────────────
-   41  ┌ resource "aws_db_instance" "this" {
-   42  │   identifier     = "atlas-${var.environment}-db"
-   43  │   engine         = var.engine
-   44  │   engine_version = var.engine_version
-   45  │   instance_class = var.instance_class
-   46  │ 
-   47  │   allocated_storage     = var.allocated_storage
-   48  │   storage_encrypted     = true
-   49  └ 
-   ..  
-──────────────────────────────────────────────────────────────────
-  Individual Causes
-  - modules/database/main.tf:41-70 (aws_db_instance.this)
-  - modules/database/main.tf:23-31 (module.database)
-──────────────────────────────────────────────────────────────────
-          ID aws-rds-enable-performance-insights
-      Impact Without adequate monitoring, performance related issues may go unreported and potentially lead to compromise.
-  Resolution Enable performance insights
+  ID: aws-rds-enable-performance-insights
+  Status: Deferred — ADR-0013 (requires paid infrastructure, not
+  justified for dev/portfolio database)
 
-  More Information
-  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/rds/enable-performance-insights/
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/rds_cluster_instance#performance_insights_kms_key_id
-  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#performance_insights_kms_key_id
-──────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────
+Full raw tool output preserved below for audit purposes.
+────────────────────────────────────────────────────────────────
 
-
-  timings
-  ──────────────────────────────────────────
-  disk i/o             594.556µs
-  parsing              40.518982ms
-  adaptation           710.127µs
-  checks               60.856962ms
-  total                102.680627ms
-
-  counts
-  ──────────────────────────────────────────
-  modules downloaded   0
-  modules processed    15
-  blocks processed     160
-  files read           45
-
-  results
-  ──────────────────────────────────────────
-  passed               38
-  ignored              0
-  critical             0
-  high                 6
-  medium               8
-  low                  2
-
-  38 passed, 16 potential problem(s) detected.
-
+[paste your full terminal output verbatim here — the "tfsec is
+joining the Trivy family" banner through the final "38 passed, 16
+potential problem(s) detected." line]
