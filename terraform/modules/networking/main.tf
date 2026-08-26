@@ -19,9 +19,17 @@ resource "aws_vpc" "this" {
 resource "aws_default_security_group" "this" {
   vpc_id = aws_vpc.this.id
 
-  # Intentionally empty ingress/egress — locks down the default SG so
-  # nothing can accidentally attach to it and inherit open access.
-  # Real workloads should use purpose-built security groups instead.
+  # Explicit empty blocks, not omission — locks down the default SG so
+  # nothing can accidentally attach to it and inherit open access. Real
+  # workloads should use purpose-built security groups instead.
+  #
+  # Declared explicitly (not just omitted) because Checkov's plan-JSON
+  # evaluation of CKV2_AWS_12 could not distinguish "no rules by
+  # omission" from "unset" in the rendered plan — the static source
+  # scan passed this check, but the plan-based scan flagged it. See
+  # ADR-0021.
+  ingress = []
+  egress  = []
 
   tags = merge(local.common_tags, {
     Name = "atlas-${var.environment}-default-sg-locked"
