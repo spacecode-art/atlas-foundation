@@ -336,7 +336,7 @@ medium, 2 low)** — every one of the 16 traces to a cited ADR (0010,
 [ADR-0010](docs/adr/ADR-0010-security-scan-triage.md),
 [ADR-0013](docs/adr/ADR-0013-rds-security-scan-triage.md),
 [ADR-0015](docs/adr/ADR-0015-rds-second-scan-triage.md), and
-[ADR-0021](docs/adr/ADR-0021-checkov-plan-scan-default-sg-false-positive.md).
+[ADR-0021](docs/adr/ADR-0021-default-sg-open-egress-gap-found-via-plan-scan.md).
 
 ---
 
