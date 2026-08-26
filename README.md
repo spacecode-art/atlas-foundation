@@ -207,7 +207,7 @@ make check
 ## CI/CD
 
 Seven jobs run on every push and PR to `main`, defined in
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml). Four of them
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml). Five of them
 call reusable workflows owned by [`atlas-security`](https://github.com/spacecode-art/atlas-security)
 rather than duplicating scan logic inline — see that repo for the
 rationale (centralized policy, one source of truth, avoids
@@ -270,9 +270,10 @@ Phase 1 (`atlas-foundation`) core infrastructure is complete:
   push/PR via CI's `terratest` job against an ephemeral MiniStack
   container — previously local-only, so CI's green checkmark had never
   actually exercised any module until this job was added
-- **Security** — Checkov and Gitleaks both run in CI on every push,
-  via `atlas-security`'s reusable workflows; all Checkov findings are
-  either fixed or explicitly deferred with a cited ADR (0010, 0013)
+- **Security** — Checkov, tfsec, Trivy, Semgrep, and Gitleaks all run
+  in CI on every push, via `atlas-security`'s reusable workflows; all
+  Checkov findings are either fixed or explicitly deferred with a
+  cited ADR (0010, 0013, 0021)
 
 **Remaining, tracked honestly:**
 - `database` Terratest remains excluded pending a MiniStack RDS fix
@@ -308,6 +309,7 @@ decisions that were later reversed. Full history in [`docs/adr/`](docs/adr/):
 | 0018 | MiniStack RDS cross-instance ID collision destroyed the real `development` RDS instance during testing |
 | 0019 | Makefile did not exclude the unsafe `database` test by default — compiler-enforced build-tag exclusion added |
 | 0020 | Mandatory resource tagging drift found via OPA — 11 resources missing `Owner`/`ManagedBy` |
+| 0021 | Default SG had a real open-egress gap; plan-based Checkov caught it, static scan didn't |
 
 ---
 
