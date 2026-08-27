@@ -38,7 +38,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write   # required by the nested gitleaks job — see atlas-security reusable-secrets-scan.yml
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-secrets-scan.yml@v1.0.0
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-secrets-scan.yml@v1.0.1
     with:
       fail-on-findings: true
     secrets:
@@ -146,7 +146,7 @@ jobs:
 
   security-scan:
     name: Security Scan
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-iac-scan.yml@v1.0.0
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-iac-scan.yml@v1.0.1
     with:
       directory: terraform/
       # CKV_AWS_144/145/119/18/CKV2_61/62/11 — ADR-0010 (S3/DynamoDB/VPC deferrals)
@@ -167,13 +167,13 @@ jobs:
   policy-scan:
     name: Policy Scan
     needs: terraform-plan
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-opa-scan.yml@v1.0.0
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-opa-scan.yml@v1.0.1
     with:
       plan-artifact-name: terraform-plan-development
   
   sast-scan:
     name: SAST Scan
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-sast-scan.yml@v1.0.0
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-sast-scan.yml@v1.0.1
     with:
       directory: terraform/
       config: p/terraform
@@ -185,6 +185,6 @@ jobs:
 
   trivy-scan:
     name: Trivy Scan (third opinion)
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-trivy-scan.yml@v1.0.0
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-trivy-scan.yml@v1.0.1
     with:
       directory: terraform/ 
