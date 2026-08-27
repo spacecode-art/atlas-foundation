@@ -26,3 +26,5 @@ func TestIAMModulePlanCreatesExpectedResources(t *testing.T) {
 	permSet := resourceChanges[`module.iam.aws_ssoadmin_permission_set.this["TestReadOnly"]`]
 	assert.Equal(t, "create", string(permSet.Change.Actions[0]))
 }
+
+

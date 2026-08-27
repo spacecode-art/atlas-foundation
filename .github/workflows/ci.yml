@@ -9,14 +9,40 @@ on:
       - main
 
 jobs:
+  lint-skip-citations:
+    name: Lint skip-list ADR citations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Checkout atlas-security (for the lint script)
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: spacecode-art/atlas-security
+          ref: v1.0.0
+          path: atlas-security
+
+      - name: Run lint-skip-citations.py against ci.yml
+        # See atlas-security ADR-0008. Fails the build if any
+        # checkov-skip-checks ID isn't cited alongside an ADR-\d+
+        # token in a comment — enforces the convention this repo has
+        # followed by hand since ADR-0010, now as a real gate instead
+        # of relying on PR review noticing.
+        run: |
+          python3 atlas-security/scripts/lint-skip-citations.py \
+            .github/workflows/ci.yml
+
   secrets-scan:
     name: Secrets Scan
     permissions:
       contents: read
       pull-requests: write   # required by the nested gitleaks job — see atlas-security reusable-secrets-scan.yml
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-secrets-scan.yml@main
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-secrets-scan.yml@v1.0.0
     with:
       fail-on-findings: true
+    secrets:
+      ingest-token: ${{ secrets.ATLAS_SECURITY_INGEST_TOKEN }}
 
   repository-check:
     name: Repository Validation
@@ -24,7 +50,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Verify Required Files
         run: |
@@ -54,10 +80,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_version: "1.11.0"
 
@@ -75,7 +101,7 @@ jobs:
           terraform show -json plan.tfplan > plan.json
 
       - name: Upload plan JSON for policy scan
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: terraform-plan-development
           path: terraform/environments/development/plan.json
@@ -106,7 +132,7 @@ jobs:
           terraform_version: "1.11.0"
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: tests/terratest/go.mod
           cache-dependency-path: tests/terratest/go.sum
@@ -120,7 +146,7 @@ jobs:
 
   security-scan:
     name: Security Scan
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-iac-scan.yml@main
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-iac-scan.yml@v1.0.0
     with:
       directory: terraform/
       # CKV_AWS_144/145/119/18/CKV2_61/62/11 — ADR-0010 (S3/DynamoDB/VPC deferrals)
@@ -135,26 +161,30 @@ jobs:
         CKV2_AWS_61,CKV2_AWS_62,CKV2_AWS_11,
         CKV_AWS_130,CKV2_AWS_30,CKV_AWS_157,
         CKV_AWS_353,CKV_AWS_118,CKV_AWS_293
+    secrets:
+      ingest-token: ${{ secrets.ATLAS_SECURITY_INGEST_TOKEN }}
 
   policy-scan:
     name: Policy Scan
     needs: terraform-plan
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-opa-scan.yml@main
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-opa-scan.yml@v1.0.0
     with:
       plan-artifact-name: terraform-plan-development
   
   sast-scan:
     name: SAST Scan
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-sast-scan.yml@main
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-sast-scan.yml@v1.0.0
     with:
       directory: terraform/
       config: p/terraform
       # fail-on-findings intentionally false — soft rollout, see
       # atlas-security ADR-0003. Revisit once a baseline is established.
       fail-on-findings: false
+    secrets:
+      ingest-token: ${{ secrets.ATLAS_SECURITY_INGEST_TOKEN }}
 
   trivy-scan:
     name: Trivy Scan (third opinion)
-    uses: spacecode-art/atlas-security/.github/workflows/reusable-trivy-scan.yml@main
+    uses: spacecode-art/atlas-security/.github/workflows/reusable-trivy-scan.yml@v1.0.0
     with:
       directory: terraform/ 
