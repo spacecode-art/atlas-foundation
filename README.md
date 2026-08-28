@@ -206,7 +206,7 @@ make check
 
 ## CI/CD
 
-Seven jobs run on every push and PR to `main`, defined in
+Nine jobs run on every push and PR to `main`, defined in
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml). Five of them
 call reusable workflows owned by [`atlas-security`](https://github.com/spacecode-art/atlas-security)
 rather than duplicating scan logic inline — see that repo for the
@@ -242,6 +242,14 @@ per-repo skip-list drift).
    (third-opinion IaC scan, `continue-on-error: true`) against the full
    `terraform/` tree. Non-blocking by design; see `atlas-security`
    ADR-0004.
+8. **`lint-skip-citations`** — runs `atlas-security`'s
+   `lint-skip-citations.py` against this repo's Checkov skip-list,
+   failing CI if any skipped check lacks a cited ADR (ADR-0008 in
+   `atlas-security`).
+9. **`terratest`** — runs the Go test suite in
+   [`tests/terratest/`](tests/terratest/) against an ephemeral
+   MiniStack service container on every push/PR (see Testing
+   Strategy below).
 
 ---
 
