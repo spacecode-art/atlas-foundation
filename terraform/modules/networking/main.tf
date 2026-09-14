@@ -45,10 +45,10 @@ resource "aws_internet_gateway" "this" {
 }
 
 resource "aws_subnet" "public" {
-  count                   = length(var.public_subnet_cidrs)
-  vpc_id                  = aws_vpc.this.id
-  cidr_block              = var.public_subnet_cidrs[count.index]
-  availability_zone       = var.availability_zones[count.index]
+  count             = length(var.public_subnet_cidrs)
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.public_subnet_cidrs[count.index]
+  availability_zone = var.availability_zones[count.index]
   # Intentional public-subnet behavior for internet-facing entry points.
   # The private subnet tier remains non-public. This exception is aligned
   # with Checkov CKV_AWS_130 and the decision recorded in ADR-0010.
@@ -90,4 +90,24 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
+resource "aws_route_table" "private" {
+  count  = length(var.private_subnet_cidrs)
+  vpc_id = aws_vpc.this.id
 
+  # No route block here, intentionally — the private subnet's egress path
+  # (typically a NAT Gateway) is owned by a separate module
+  # (atlas-network's nat-strategy), not by this VPC module. That module
+  # attaches its own aws_route resource to the route_table_id this module
+  # outputs, keeping ownership boundaries clean between "who owns the VPC"
+  # and "who owns egress strategy."
+
+  tags = merge(local.common_tags, {
+    Name = "atlas-${var.environment}-private-rt-${count.index}"
+  })
+}
+
+resource "aws_route_table_association" "private" {
+  count          = length(aws_subnet.private)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
+}
